@@ -1,0 +1,29 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>3D Galaxy Portfolio | Shirly</title>
+  <script>
+    window.addEventListener('load', () => {
+      const screen = document.getElementById('loading-screen');
+      screen.style.display = 'none'; // Immediately hide loading for preview
+    });
+
+    const cursorParticles = document.getElementById('cursor-particles');
+    document.addEventListener('mousemove', (e) => {
+      const particle = document.createElement('div');
+      particle.classList.add('particle');
+      particle.style.top = `${e.clientY}px`;
+      particle.style.left = `${e.clientX}px`;
+      cursorParticles.appendChild(particle);
+      setTimeout(() => particle.remove(), 400);
+    });
+  </script>
+</head>
+<body>
+  <div id="loading-screen">Loading...</div>
+  <div id="cursor-particles"></div>
+</body>
+</html>
