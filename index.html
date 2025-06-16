@@ -1,29 +1,866 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>3D Galaxy Portfolio | Shirly</title>
-  <script>
-    window.addEventListener('load', () => {
-      const screen = document.getElementById('loading-screen');
-      screen.style.display = 'none'; // Immediately hide loading for preview
-    });
+  <title>3D Fantasy World Portfolio | Shirly</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    /* Basic reset and font application */
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden; /* Hide scrollbars as content is fixed */
+      font-family: 'Manrope', sans-serif; /* Apply Manrope font */
+      background: black; /* Dark background for space theme */
+      color: white; /* White text for contrast */
+      cursor: none; /* Hide default cursor to use custom particle cursor */
+    }
+    
+    /* Canvas styling for full screen */
+    canvas {
+      display: block; /* Remove extra space below canvas */
+      width: 100vw; /* Full viewport width */
+      height: 100vh; /* Full viewport height */
+      position: fixed; /* Fix canvas position */
+      top: 0;
+      left: 0;
+      z-index: 0; /* Ensure canvas is in the background */
+    }
+    
+    /* Cursor particle container */
+    #cursor-particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 0; /* Particles are created dynamically */
+      height: 0;
+      pointer-events: none; /* Allow clicks to pass through */
+      z-index: 9999; /* Ensure particles are on top */
+    }
+    
+    /* Individual particle styling */
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%; /* Make particles circular */
+      background: radial-gradient(circle, rgba(0,255,255,0.8) 0%, rgba(255,102,0,0.4) 100%); /* Gradient background */
+      box-shadow: 0 0 8px rgba(0,255,255,0.6); /* Glow effect */
+      animation: fadeMove 0.6s ease-out forwards; /* Animation for movement and fading */
+    }
+    
+    /* Keyframes for particle animation */
+    @keyframes fadeMove {
+      0% { opacity: 1; transform: translate(0, 0) scale(1); } /* Start opaque and normal size */
+      100% { opacity: 0; transform: translate(-12px, -12px) scale(0.1); } /* End transparent, moved, and scaled down */
+    }
+    
+    /* UI container for title and subtitle */
+    #ui {
+      position: absolute;
+      top: 10px; /* Adjusted to be higher */
+      left: 50%;
+      transform: translateX(-50%); /* Center horizontally */
+      text-align: center;
+      z-index: 10; /* Above canvas */
+    }
+    
+    /* Title styling with glowing effect */
+    .title {
+      font-size: 2.8rem;
+      color: #fff;
+      text-shadow: 0 0 15px #00ffff, 0 0 30px #ff6600, 0 0 45px #ff3388; /* Multiple color shadows */
+      animation: glowPulse 3s ease-in-out infinite alternate; /* Pulsing glow animation */
+      font-weight: 800;
+      letter-spacing: 2px;
+    }
+    
+    /* Subtitle styling with subtle glow */
+    .subtitle {
+      font-size: 1.4rem;
+      color: #cccccc;
+      animation: subtitleGlow 4s ease-in-out infinite alternate; /* Subtle glow animation */
+      font-weight: 400;
+      margin-top: 5px;
+    }
+    
+    /* Keyframes for title glow pulse */
+    @keyframes glowPulse {
+      0% { text-shadow: 0 0 10px #00ffff, 0 0 20px #ff6600, 0 0 30px #ff3388; }
+      50% { text-shadow: 0 0 20px #00ffff, 0 0 40px #ff6600, 0 0 60px #ff3388; }
+      100% { text-shadow: 0 0 15px #00ffff, 0 0 30px #ff6600, 0 0 45px #ff3388; }
+    }
+    
+    /* Keyframes for subtitle glow */
+    @keyframes subtitleGlow {
+      from { text-shadow: 0 0 5px #00ffff; color: #cccccc; }
+      to { text-shadow: 0 0 15px #ff6600; color: #ffffff; }
+    }
+    
+    /* Contact section styling */
+    .contact-section {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%); /* Center horizontally */
+      z-index: 10;
+      background: linear-gradient(135deg, rgba(0,20,40,0.9), rgba(20,0,40,0.8)); /* Dark gradient background */
+      padding: 25px;
+      border-radius: 15px;
+      border: 2px solid rgba(0,255,255,0.4); /* Cyan border */
+      backdrop-filter: blur(15px); /* Blurry background effect */
+      max-width: 320px;
+      width: 90%; /* Responsive width */
+      box-shadow: 0 0 30px rgba(0,255,255,0.2); /* Soft shadow */
+    }
+    
+    .contact-section h2 {
+      margin-top: 0;
+      color: #00ffff; /* Cyan color */
+      text-align: center;
+      text-shadow: 0 0 10px #00ffff; /* Glowing text effect */
+    }
+    
+    .contact-section input, .contact-section textarea {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 10px;
+      border: 2px solid rgba(0,255,255,0.3);
+      background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(0,255,255,0.05)); /* Transparent gradient background */
+      color: white;
+      box-sizing: border-box; /* Include padding in width */
+      transition: all 0.3s ease; /* Smooth transition on focus */
+    }
+    
+    .contact-section input:focus, .contact-section textarea:focus {
+      border-color: #00ffff; /* Cyan border on focus */
+      box-shadow: 0 0 15px rgba(0,255,255,0.3); /* Glow on focus */
+      outline: none; /* Remove default outline */
+    }
+    
+    .contact-section input::placeholder, .contact-section textarea::placeholder {
+      color: rgba(255,255,255,0.7); /* Lighter placeholder text */
+    }
+    
+    .contact-section button {
+      background: linear-gradient(145deg, #ff6600, #00ffff, #ff3388); /* Multi-color gradient */
+      color: white;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      width: 100%;
+      font-weight: bold;
+      font-size: 1rem;
+      transition: all 0.3s ease; /* Smooth transition on hover */
+      text-shadow: 0 0 5px rgba(0,0,0,0.5);
+    }
+    
+    .contact-section button:hover {
+      transform: translateY(-3px); /* Lift button on hover */
+      box-shadow: 0 8px 25px rgba(0,255,255,0.4), 0 0 20px rgba(255,102,0,0.3); /* Enhanced shadow on hover */
+    }
+    
+    /* Category buttons container for circular layout */
+    #category-buttons {
+      position: absolute;
+      top: 55%; /* Adjusted to be lower */
+      left: 50%;
+      width: 450px; /* Fixed size for circular arrangement */
+      height: 450px;
+      pointer-events: auto; /* Allow interaction with buttons */
+      z-index: 9; /* Above canvas, below UI text */
+      transform: translate(-50%, -50%); /* Center the container */
+    }
+    
+    /* Individual category button styling */
+    #category-buttons a {
+      position: absolute;
+      transform: translate(-50%, -50%); /* Center button itself within its positioned space */
+      background: linear-gradient(145deg, #ff6600, #ff3388, #00aaff, #ffdd00); /* Dynamic gradient */
+      background-size: 300% 300%; /* For gradient animation */
+      color: white;
+      border-radius: 999px; /* Pill shape */
+      padding: 15px 30px;
+      text-decoration: none;
+      box-shadow: 0 0 25px rgba(255,102,0,0.6), inset 0 0 15px rgba(255,255,255,0.1);
+      font-weight: bold;
+      transition: all 0.4s ease; /* Smooth transition on hover */
+      cursor: pointer;
+      font-size: 1rem;
+      backdrop-filter: blur(8px); /* Blurry background for buttons */
+      border: 2px solid rgba(255,255,255,0.3);
+      animation: gradientShift 4s ease-in-out infinite; /* Gradient shift animation */
+      text-shadow: 0 0 8px rgba(0,0,0,0.7);
+    }
+    
+    /* Keyframes for gradient shift animation */
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    /* Category button hover effects */
+    #category-buttons a:hover {
+      transform: translate(-50%, -50%) scale(1.15); /* Enlarge on hover */
+      box-shadow: 0 0 40px rgba(255,102,0,1), 0 0 25px rgba(255,51,136,0.8), 0 0 15px rgba(0,170,255,0.6); /* Intense glow on hover */
+      animation-duration: 1s; /* Faster animation on hover */
+    }
+    
+    /* Floating info box */
+    .floating-info {
+      position: absolute;
+      top: 50%;
+      right: 30px; /* Positioned to the right */
+      transform: translateY(-50%); /* Center vertically */
+      background: linear-gradient(135deg, rgba(0,50,100,0.8), rgba(50,0,100,0.7)); /* Dark blue/purple gradient */
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid rgba(0,255,255,0.4);
+      backdrop-filter: blur(10px);
+      max-width: 200px;
+      z-index: 8;
+      box-shadow: 0 0 20px rgba(0,255,255,0.2);
+    }
+    
+    .floating-info h3 {
+      color: #00ffff; /* Cyan color */
+      margin-top: 0;
+      font-size: 1.1rem;
+    }
+    
+    .floating-info p {
+      font-size: 0.9rem;
+      line-height: 1.4;
+      color: #cccccc;
+    }
 
-    const cursorParticles = document.getElementById('cursor-particles');
-    document.addEventListener('mousemove', (e) => {
-      const particle = document.createElement('div');
-      particle.classList.add('particle');
-      particle.style.top = `${e.clientY}px`;
-      particle.style.left = `${e.clientX}px`;
-      cursorParticles.appendChild(particle);
-      setTimeout(() => particle.remove(), 400);
-    });
-  </script>
+    /* Media queries for responsiveness */
+    @media (max-width: 768px) {
+      .title {
+        font-size: 2rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+      }
+      #category-buttons {
+        width: 300px; /* Smaller button container */
+        height: 300px;
+      }
+      #category-buttons a {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+      }
+      .floating-info {
+        right: auto; /* Remove fixed right position */
+        left: 50%; /* Center horizontally */
+        bottom: 120px; /* Adjust position to avoid overlapping contact form */
+        top: auto; /* Allow bottom to take precedence */
+        transform: translateX(-50%);
+        max-width: 90%;
+      }
+      .contact-section {
+        max-width: 90%; /* Full width on smaller screens */
+        bottom: 20px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <div id="loading-screen">Loading...</div>
+  <canvas id="galaxy-canvas"></canvas>
+  
+  <!-- Three.js library import -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    // Initialize Three.js scene with enhanced settings
+    const scene = new THREE.Scene();
+    // Camera setup: PerspectiveCamera(FOV, Aspect Ratio, Near, Far)
+    const camera = new THREE.PerspectiveCamera(65, window.innerWidth/window.innerHeight, 0.1, 2000);
+    camera.position.set(0, 10, 20); // Initial camera position, adjusted for floating island view
+
+    // Renderer setup
+    const renderer = new THREE.WebGLRenderer({ 
+      canvas: document.getElementById('galaxy-canvas'), 
+      antialias: true, // Smoother edges
+      alpha: true, // Allow transparency
+      powerPreference: "high-performance" // Request high performance GPU
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight); // Set renderer size to full window
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Use device pixel ratio for sharper images
+    renderer.shadowMap.enabled = true; // Enable shadow mapping
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
+
+    // Enhanced background with nebula effect
+    scene.background = new THREE.Color(0x0a031e); // Deeper space background color
+    scene.fog = new THREE.FogExp2(0x0a031e, 0.0008); // Exponential fog for depth effect
+
+    // Enhanced lighting system - more magical and varied
+    const ambientLight = new THREE.AmbientLight(0x6666ff, 0.3); // Subtle blue ambient light
+    scene.add(ambientLight);
+
+    const mainLight = new THREE.DirectionalLight(0xffdd00, 1.8); // Golden main light
+    mainLight.position.set(15, 10, 15); // Position the light source
+    mainLight.castShadow = true; // Enable light to cast shadows
+    mainLight.shadow.mapSize.width = 2048; // Higher resolution shadows
+    mainLight.shadow.mapSize.height = 2048;
+    scene.add(mainLight);
+
+    const blueAccentLight = new THREE.PointLight(0x00aaff, 1.2, 100); // Blue point light accent
+    blueAccentLight.position.set(-10, 5, 10);
+    scene.add(blueAccentLight);
+
+    const pinkAccentLight = new THREE.PointLight(0xff3388, 1.0, 80); // Pink point light accent
+    pinkAccentLight.position.set(10, 8, -10);
+    scene.add(pinkAccentLight);
+
+    const greenGlowLight = new THREE.PointLight(0x00ff00, 0.6, 60); // Green glow light
+    greenGlowLight.position.set(0, -5, 5);
+    scene.add(greenGlowLight);
+
+    // Enhanced star field with multiple layers and colored stars
+    function createStarField(count, spread, size, opacity) {
+      const starGeometry = new THREE.BufferGeometry();
+      const starVertices = [];
+      const starColors = [];
+      
+      for (let i = 0; i < count; i++) {
+        // Random positions within a spread
+        const x = (Math.random() - 0.5) * spread;
+        const y = (Math.random() - 0.5) * spread;
+        const z = (Math.random() - 0.5) * spread;
+        starVertices.push(x, y, z);
+        
+        // Assign random colors to stars
+        const colorChoice = Math.random();
+        const color = new THREE.Color();
+        
+        if (colorChoice < 0.25) {
+          color.setHSL(0.08 + Math.random() * 0.1, 0.9, 0.7); // Orange-yellow stars
+        } else if (colorChoice < 0.5) {
+          color.setHSL(0.55 + Math.random() * 0.15, 1.0, 0.8); // Blue-cyan stars
+        } else if (colorChoice < 0.75) {
+          color.setHSL(0.9 + Math.random() * 0.1, 0.9, 0.7); // Pink-magenta stars
+        } else {
+          color.setHSL(0.75 + Math.random() * 0.1, 0.8, 0.9); // Purple stars
+        }
+        
+        starColors.push(color.r, color.g, color.b);
+      }
+      
+      starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+      starGeometry.setAttribute('color', new THREE.Float32BufferAttribute(starColors, 3));
+      
+      const starMaterial = new THREE.PointsMaterial({ 
+        vertexColors: true, // Use vertex colors
+        size: size,
+        transparent: true,
+        opacity: opacity,
+        blending: THREE.AdditiveBlending // Brighter blending for stars
+      });
+      
+      return new THREE.Points(starGeometry, starMaterial);
+    }
+
+    // Create multiple star layers for depth
+    const stars1 = createStarField(4000, 2500, 2.8, 0.8);
+    const stars2 = createStarField(2000, 2000, 1.8, 0.6);
+    const stars3 = createStarField(1000, 1500, 3.5, 0.4);
+    scene.add(stars1);
+    scene.add(stars2);
+    scene.add(stars3);
+
+    // Main floating island (replaces Earth)
+    let mainIsland;
+    let fantasyStructures = []; // Array to store fantasy structures for animation
+
+    function createMainFloatingIsland() {
+      const islandGroup = new THREE.Group();
+
+      // Main island base - deformed sphere/cylinder for organic shape
+      const islandGeometry = new THREE.CylinderGeometry(10, 12, 4, 64, 8); // Wider cylinder
+      // Deform the cylinder to make it look like a floating landmass
+      const positions = islandGeometry.attributes.position;
+      const tempVertex = new THREE.Vector3();
+      for (let i = 0; i < positions.count; i++) {
+        tempVertex.fromBufferAttribute(positions, i);
+        const radius = tempVertex.length();
+        // More complex noise for rugged terrain
+        const noise = Math.sin(tempVertex.x * 0.5) * Math.cos(tempVertex.z * 0.5) * 0.5 +
+                      Math.sin(tempVertex.x * 1.2) * Math.sin(tempVertex.z * 1.2) * 0.3;
+        tempVertex.y += Math.sin(tempVertex.x * 0.8) * 0.5 + Math.cos(tempVertex.z * 0.8) * 0.5;
+        tempVertex.normalize().multiplyScalar(radius + noise * 1.5);
+        positions.setXYZ(i, tempVertex.x, tempVertex.y, tempVertex.z);
+      }
+      islandGeometry.computeVertexNormals(); // Recalculate normals after deformation
+
+      const islandMaterial = new THREE.MeshStandardMaterial({
+        color: 0x6a5a40, // Earthy brown for land
+        roughness: 0.9,
+        metalness: 0.1
+      });
+      mainIsland = new THREE.Mesh(islandGeometry, islandMaterial);
+      mainIsland.castShadow = true;
+      mainIsland.receiveShadow = true;
+      mainIsland.position.y = -2; // Position it lower
+      islandGroup.add(mainIsland);
+
+      // Add detailed vertex colors for a textured look (grass, rock, dirt)
+      const islandColors = [];
+      const mainPositions = mainIsland.geometry.attributes.position;
+      const mainVertex = new THREE.Vector3();
+      for (let i = 0; i < mainPositions.count; i++) {
+        mainVertex.fromBufferAttribute(mainPositions, i);
+        let color = new THREE.Color();
+        
+        // Vary colors based on height and random noise for a textured look
+        if (mainVertex.y > 0.5) {
+          // Top layer: grass/mossy green
+          color.setHSL(0.3 + Math.random() * 0.1, 0.7 + Math.random() * 0.2, 0.4 + Math.random() * 0.1);
+        } else if (mainVertex.y > -1) {
+          // Middle layer: dirt/brown
+          color.setHSL(0.1 + Math.random() * 0.05, 0.6 + Math.random() * 0.2, 0.3 + Math.random() * 0.1);
+        } else {
+          // Bottom layer: rocky/gray-brown
+          color.setHSL(0.08 + Math.random() * 0.05, 0.3 + Math.random() * 0.2, 0.25 + Math.random() * 0.1);
+        }
+        
+        islandColors.push(color.r, color.g, color.b);
+      }
+      mainIsland.geometry.setAttribute('color', new THREE.Float32BufferAttribute(islandColors, 3));
+      mainIsland.material.vertexColors = true;
+
+      // Add abstract fantasy structures (more varied shapes and glowing properties)
+      for (let i = 0; i < 25; i++) {
+        let structureGeometry;
+        const type = Math.random();
+        if (type < 0.3) {
+          structureGeometry = new THREE.BoxGeometry(1 + Math.random() * 1.5, 3 + Math.random() * 7, 1 + Math.random() * 1.5);
+        } else if (type < 0.6) {
+          structureGeometry = new THREE.ConeGeometry(0.8 + Math.random() * 1.2, 4 + Math.random() * 6, 8);
+        } else {
+          structureGeometry = new THREE.DodecahedronGeometry(1.5 + Math.random() * 1);
+        }
+
+        const structureMaterial = new THREE.MeshStandardMaterial({
+          color: new THREE.Color().setHSL(0.6 + Math.random() * 0.2, 0.8, 0.6), // Blues and purples
+          emissive: new THREE.Color().setHSL(0.6 + Math.random() * 0.2, 0.8, 0.4), // Glowing parts
+          emissiveIntensity: 0.3 + Math.random() * 0.5
+        });
+        const structure = new THREE.Mesh(structureGeometry, structureMaterial);
+        
+        // Position structures on top of the island
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 4 + Math.random() * 5;
+        structure.position.set(
+          Math.cos(angle) * distance,
+          structure.geometry.parameters.height / 2 + 1 || 1.5, // Handle different geometries
+          Math.sin(angle) * distance
+        );
+        structure.castShadow = true;
+        islandGroup.add(structure);
+        fantasyStructures.push(structure); // Add to array for animation
+      }
+
+      // Add large glowing crystals (more vibrant)
+      for (let i = 0; i < 8; i++) {
+        let crystalGeometry;
+        const crystalType = Math.random();
+        if (crystalType < 0.5) {
+          crystalGeometry = new THREE.DodecahedronGeometry(1 + Math.random() * 0.8);
+        } else {
+          crystalGeometry = new THREE.OctahedronGeometry(1 + Math.random() * 0.8);
+        }
+
+        const crystalColors = [0x00ffff, 0xff6600, 0xff3388, 0x00ff00, 0x9900ff, 0xffdd00];
+        const crystalMaterial = new THREE.MeshStandardMaterial({
+          color: crystalColors[Math.floor(Math.random() * crystalColors.length)],
+          emissive: crystalColors[Math.floor(Math.random() * crystalColors.length)],
+          emissiveIntensity: 1.0 + Math.random() * 1.0, // Stronger glow
+          transparent: true,
+          opacity: 0.7
+        });
+        const crystal = new THREE.Mesh(crystalGeometry, crystalMaterial);
+        crystal.position.set(
+          (Math.random() - 0.5) * 15,
+          (Math.random() * 3) - 1.5,
+          (Math.random() - 0.5) * 15
+        );
+        islandGroup.add(crystal);
+      }
+
+      scene.add(islandGroup);
+    }
+    createMainFloatingIsland();
+
+    // Small floating islands
+    window.floatingIslands = []; // Store islands for animation
+    
+    function createFloatingIsland(x, y, z, scale = 1) {
+      const islandGroup = new THREE.Group();
+      
+      // Main island base - more organic shape
+      const islandGeometry = new THREE.IcosahedronGeometry(1.5 * scale, 1); // Icosahedron for more organic, rocky look
+      const islandMaterial = new THREE.MeshStandardMaterial({
+        color: 0x5a4a30, // Earthy brown for land
+        roughness: 0.8,
+        metalness: 0.1
+      });
+      const island = new THREE.Mesh(islandGeometry, islandMaterial);
+      island.castShadow = true;
+      island.receiveShadow = true;
+      islandGroup.add(island);
+
+      // Add detailed vertex colors for the small islands (similar to main island for consistency)
+      const islandColors = [];
+      const positions = island.geometry.attributes.position;
+      const vertex = new THREE.Vector3();
+      for (let i = 0; i < positions.count; i++) {
+        vertex.fromBufferAttribute(positions, i);
+        let color = new THREE.Color();
+        if (vertex.y > 0.5 * scale) {
+          color.setHSL(0.3 + Math.random() * 0.1, 0.7 + Math.random() * 0.2, 0.4 + Math.random() * 0.1);
+        } else if (vertex.y > -0.5 * scale) {
+          color.setHSL(0.1 + Math.random() * 0.05, 0.6 + Math.random() * 0.2, 0.3 + Math.random() * 0.1);
+        } else {
+          color.setHSL(0.08 + Math.random() * 0.05, 0.3 + Math.random() * 0.2, 0.25 + Math.random() * 0.1);
+        }
+        islandColors.push(color.r, color.g, color.b);
+      }
+      island.geometry.setAttribute('color', new THREE.Float32BufferAttribute(islandColors, 3));
+      island.material.vertexColors = true;
+      
+      // Add small vegetation/details (more varied)
+      for (let i = 0; i < 5; i++) {
+        const vegHeight = 0.3 * scale + Math.random() * 0.5 * scale;
+        let vegGeometry;
+        if (Math.random() < 0.5) {
+          vegGeometry = new THREE.ConeGeometry(0.1 * scale, vegHeight, 6);
+        } else {
+          vegGeometry = new THREE.CylinderGeometry(0.08 * scale, 0.15 * scale, vegHeight, 8);
+        }
+        const vegMaterial = new THREE.MeshStandardMaterial({
+          color: new THREE.Color().setHSL(0.25 + Math.random() * 0.15, 0.8, 0.4)
+        });
+        const vegetation = new THREE.Mesh(vegGeometry, vegMaterial);
+        vegetation.position.set(
+          (Math.random() - 0.5) * 1.5 * scale,
+          0.5 * scale + vegHeight / 2,
+          (Math.random() - 0.5) * 1.5 * scale
+        );
+        islandGroup.add(vegetation);
+      }
+      
+      islandGroup.position.set(x, y, z); // Set group position
+      scene.add(islandGroup);
+      window.floatingIslands.push(islandGroup); // Add to global array for animation
+      
+      return islandGroup;
+    }
+    
+    // Create multiple smaller floating islands
+    createFloatingIsland(-15, 5, -8, 1.2);
+    createFloatingIsland(12, -3, -5, 0.9);
+    createFloatingIsland(-7, -8, 10, 0.7);
+    createFloatingIsland(18, 2, 7, 1.1);
+    createFloatingIsland(0, 15, -12, 1.0);
+
+    // Enhanced dramatic rings with particle effects (similar to halo around main island)
+    const ringGroup = new THREE.Group();
+    
+    function createEnhancedRing(innerRadius, outerRadius, color, opacity, segments = 128) {
+      const ringGeometry = new THREE.RingGeometry(innerRadius, outerRadius, segments);
+      const ringMaterial = new THREE.MeshBasicMaterial({
+        color: color,
+        transparent: true,
+        opacity: opacity,
+        side: THREE.DoubleSide, // Render both sides of the ring
+        blending: THREE.AdditiveBlending // Additive blending for glow effect
+      });
+      
+      // Add particle effects to rings
+      const particleGeometry = new THREE.BufferGeometry();
+      const particleCount = 400; // More particles for denser rings
+      const particlePositions = [];
+      
+      for (let i = 0; i < particleCount; i++) {
+        const angle = (i / particleCount) * Math.PI * 2;
+        const radius = innerRadius + Math.random() * (outerRadius - innerRadius); // Random radius within ring
+        particlePositions.push(
+          Math.cos(angle) * radius,
+          (Math.random() - 0.5) * 1.0, // Larger y-spread for particles
+          Math.sin(angle) * radius
+        );
+      }
+      
+      particleGeometry.setAttribute('position', new THREE.Float32BufferAttribute(particlePositions, 3));
+      const particleMaterial = new THREE.PointsMaterial({
+        color: color,
+        size: 0.3, // Larger particles
+        transparent: true,
+        opacity: opacity * 0.9,
+        blending: THREE.AdditiveBlending
+      });
+      
+      const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+      const particles = new THREE.Points(particleGeometry, particleMaterial);
+      
+      const ringWithParticles = new THREE.Group();
+      ringWithParticles.add(ring);
+      ringWithParticles.add(particles); // Add particles to the ring group
+      
+      return ringWithParticles;
+    }
+    
+    // Create multiple rings around the main island, mimicking the image
+    const mainRing1 = createEnhancedRing(14, 15, 0x9900ff, 0.6); // Purple
+    mainRing1.rotation.x = Math.PI / 2; // Flat
+    mainRing1.position.y = 2; // Position around the island
+    ringGroup.add(mainRing1);
+
+    const mainRing2 = createEnhancedRing(13.5, 14.5, 0x00aaff, 0.4); // Blue
+    mainRing2.rotation.x = Math.PI / 2;
+    mainRing2.rotation.y = Math.PI / 8; // Slight tilt
+    mainRing2.position.y = 2;
+    ringGroup.add(mainRing2);
+
+    const mainRing3 = createEnhancedRing(15, 16, 0xff3388, 0.3); // Pink
+    mainRing3.rotation.x = Math.PI / 2;
+    mainRing3.rotation.y = -Math.PI / 16; // Slight tilt
+    mainRing3.position.y = 2;
+    ringGroup.add(mainRing3);
+    
+    scene.add(ringGroup);
+
+    // Flying vehicles (more organic/fantasy-like)
+    window.flyingVehicles = [];
+
+    function createFlyingVehicle(x, y, z, scale = 1) {
+      const vehicleGroup = new THREE.Group();
+
+      // Main body - more rounded, organic shape
+      const bodyGeometry = new THREE.SphereGeometry(1.2 * scale, 32, 16); // Smoother sphere for body
+      const bodyMaterial = new THREE.MeshStandardMaterial({
+        color: 0x8899aa, // Subtle metallic/stone like
+        metalness: 0.3,
+        roughness: 0.7,
+        emissive: 0x00ffff, // Glowing parts
+        emissiveIntensity: 0.2
+      });
+      const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+      vehicleGroup.add(body);
+
+      // Wings/fins (more stylized)
+      const wingShape = new THREE.Shape();
+      wingShape.moveTo(0, 0);
+      wingShape.lineTo(2 * scale, 0.5 * scale);
+      wingShape.lineTo(0.5 * scale, 0.5 * scale);
+      wingShape.lineTo(0, 0);
+      const extrudeSettings = {
+          steps: 1,
+          depth: 0.1 * scale,
+          bevelEnabled: true,
+          bevelThickness: 0.05 * scale,
+          bevelSize: 0.05 * scale,
+          bevelSegments: 2
+      };
+      const wingGeometry = new THREE.ExtrudeGeometry(wingShape, extrudeSettings);
+      const wingMaterial = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.7, roughness: 0.4 });
+      
+      const wing1 = new THREE.Mesh(wingGeometry, wingMaterial);
+      wing1.rotation.y = Math.PI / 2;
+      wing1.position.set(0.5 * scale, 0.5 * scale, 0);
+      vehicleGroup.add(wing1);
+
+      const wing2 = new THREE.Mesh(wingGeometry, wingMaterial);
+      wing2.rotation.y = -Math.PI / 2;
+      wing2.position.set(0.5 * scale, -0.5 * scale, 0);
+      vehicleGroup.add(wing2);
+
+      // Propulsion glow at the back (multiple points)
+      for (let i = 0; i < 3; i++) {
+        const engineGlow = new THREE.PointLight(0xff6600, 0.8, 6); // Orange-red glow
+        engineGlow.position.set(-1.5 * scale, (i - 1) * 0.5 * scale, 0); // Spread out
+        vehicleGroup.add(engineGlow);
+      }
+
+      vehicleGroup.position.set(x, y, z);
+      scene.add(vehicleGroup);
+      window.flyingVehicles.push(vehicleGroup);
+      return vehicleGroup;
+    }
+
+    // Create several flying vehicles
+    createFlyingVehicle(20, 8, 0, 1.5);
+    createFlyingVehicle(-18, 0, 10, 1.0);
+    createFlyingVehicle(0, -10, -15, 0.8);
+    createFlyingVehicle(25, -5, -20, 1.3);
+
+
+    // Mouse controls for camera with smoother movement
+    let mouseX = 0, mouseY = 0;
+    const windowHalfX = window.innerWidth / 2;
+    const windowHalfY = window.innerHeight / 2;
+
+    document.addEventListener('mousemove', (event) => {
+      // Calculate mouse position relative to center of window
+      mouseX = (event.clientX - windowHalfX) / 80;
+      mouseY = (event.clientY - windowHalfY) / 80;
+      
+      createCursorParticle(event.clientX, event.clientY); // Create particles at cursor position
+    });
+
+    // Enhanced cursor particle system
+    function createCursorParticle(x, y) {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.left = x + 'px';
+      particle.style.top = y + 'px';
+      
+      // Add random colors to particles from a predefined list
+      const colors = ['rgba(0,255,255,0.8)', 'rgba(255,102,0,0.8)', 'rgba(255,51,136,0.8)', 'rgba(255,221,0,0.8)'];
+      const randomColor = colors[Math.floor(Math.random() * colors.length)];
+      particle.style.background = `radial-gradient(circle, ${randomColor} 0%, transparent 70%)`;
+      
+      document.getElementById('cursor-particles').appendChild(particle);
+      
+      // Remove particle after animation duration
+      setTimeout(() => {
+        if (particle.parentNode) {
+          particle.remove();
+        }
+      }, 600);
+    }
+
+    // Enhanced animation loop with more dynamic effects
+    function animate() {
+      requestAnimationFrame(animate); // Request next animation frame
+      
+      const time = Date.now() * 0.001; // Current time in seconds for animations
+      
+      // Animate main island (subtle bobbing and rotation)
+      mainIsland.position.y = -2 + Math.sin(time * 0.5) * 0.3;
+      mainIsland.rotation.y += 0.002;
+      
+      // Animate fantasy structures (subtle pulsing glow)
+      fantasyStructures.forEach((structure, index) => {
+        structure.material.emissiveIntensity = 0.3 + Math.sin(time * 3 + index) * 0.2;
+        structure.rotation.y += 0.005 * (index % 2 === 0 ? 1 : -1); // Subtle rotation
+      });
+
+      // Animate smaller floating islands with more complex movement (rotation, bobbing, subtle side movement)
+      window.floatingIslands.forEach((island, index) => {
+        island.rotation.y += 0.008 + index * 0.002; // Rotate islands at different speeds
+        island.position.y += Math.sin(time * 1.5 + index * 2) * 0.003; // Bobbing motion
+        island.position.x += Math.cos(time * 0.8 + index) * 0.001; // Subtle horizontal drift
+      });
+      
+      // Enhanced ring animations with different speeds and particle animation
+      ringGroup.children.forEach((ring, index) => {
+        const speed = 0.005 + index * 0.002; // Different speeds for each ring
+        ring.rotation.z += speed;
+        ring.rotation.y += speed * 0.7;
+        
+        // Animate ring particles if they exist
+        if (ring.children[1]) {
+          ring.children[1].rotation.y += speed * 2;
+        }
+      });
+
+      // Animate flying vehicles
+      window.flyingVehicles.forEach((vehicle, index) => {
+        const orbitRadius = 30 + index * 5;
+        const orbitSpeed = 0.005 + index * 0.001;
+        vehicle.position.x = Math.cos(time * orbitSpeed + index) * orbitRadius;
+        vehicle.position.z = Math.sin(time * orbitSpeed + index) * orbitRadius;
+        vehicle.position.y = 5 + Math.sin(time * 0.7 + index * 0.5) * 5; // Bobbing up and down
+        
+        // Make vehicles look at the center or follow a path
+        vehicle.lookAt(0, vehicle.position.y, 0); // Look towards the center horizontally
+      });
+      
+      // Animate star layers at different speeds for parallax effect
+      stars1.rotation.y += 0.0003;
+      stars1.rotation.x += 0.0001;
+      stars2.rotation.y += 0.0005;
+      stars2.rotation.z += 0.0002;
+      stars3.rotation.y += 0.0008;
+      
+      // Enhanced light animations (intensity and position variations)
+      mainLight.intensity = 1.8 + Math.sin(time * 2.5) * 0.4;
+      mainLight.position.x = 15 + Math.sin(time * 1.2) * 2;
+      
+      blueAccentLight.intensity = 1.2 + Math.cos(time * 1.8) * 0.3;
+      blueAccentLight.position.z = 10 + Math.cos(time * 0.9) * 2;
+      
+      pinkAccentLight.intensity = 1.0 + Math.sin(time * 3.2) * 0.3;
+      pinkAccentLight.position.y = 8 + Math.sin(time * 1.1) * 3;
+      
+      greenGlowLight.intensity = 0.6 + Math.cos(time * 2.8) * 0.2;
+      
+      // Smooth camera movement based on mouse input using linear interpolation
+      camera.position.x += (mouseX - camera.position.x) * 0.03;
+      camera.position.y += (-mouseY - camera.position.y + 10) * 0.03; // Adjusted for new island height
+      
+      // Add subtle camera rotation
+      camera.rotation.z = Math.sin(time * 0.5) * 0.02;
+      
+      camera.lookAt(scene.position); // Always look at the center of the scene
+      
+      renderer.render(scene, camera); // Render the scene
+    }
+
+    // Handle window resize to maintain responsiveness
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight; // Update aspect ratio
+      camera.updateProjectionMatrix(); // Update camera projection
+      renderer.setSize(window.innerWidth, window.innerHeight); // Resize renderer
+    });
+
+    // Start animation loop
+    animate();
+  </script>
+
+  <!-- Cursor particles will be appended here dynamically -->
   <div id="cursor-particles"></div>
+  
+  <!-- Category buttons arranged in a circular fashion -->
+  <div id="category-buttons">
+    <a href="#" onclick="alert('Magic Spells & Algorithms - Coming Soon!')" style="top: 0%; left: 50%;">קסמים ואלגוריתמים</a>
+    <a href="#" onclick="alert('Ancient Lore & UI/UX - Coming Soon!')" style="top: 20%; left: 90%;">ידע עתיק וממשקים</a>
+    <a href="#" onclick="alert('Mythical Creature Gallery - Coming Soon!')" style="top: 80%; left: 90%;">גלריית יצורים</a>
+    <a href="#" onclick="alert('Epic Journeys & VFX - Coming Soon!')" style="top: 100%; left: 50%;">מסעות אפים ו-VFX</a>
+    <a href="#" onclick="alert('Dimensional Portals & AI - Coming Soon!')" style="top: 80%; left: 10%;">פורטלים ובינה מלאכותית</a>
+    <a href="#" onclick="alert('Interactive Quests - Coming Soon!')" style="top: 20%; left: 10%;">משימות אינטראקטיביות</a>
+  </div>
+
+  <!-- Main UI elements: Title and Subtitle -->
+  <div id="ui">
+    <h1 class="title">SHIRLY HERSCOVICI</h1>
+    <p class="subtitle">Creative Designer & Developer</p>
+  </div>
+  
+  <!-- Floating information box -->
+  <div class="floating-info">
+    <h3>Portfolio Features</h3>
+    <p>• 3D Interactive World<br>
+       • Floating Island Cities<br>
+       • Dynamic Lighting & Glow<br>
+       • Flying Vehicles<br>
+       • Particle Systems</p>
+  </div>
+  
+  <!-- Contact form section -->
+  <div class="contact-section">
+    <h2>Contact Me</h2>
+    <form onsubmit="event.preventDefault(); alert('Message sent successfully! Thank you for reaching out.'); this.reset();">
+      <input type="text" placeholder="Your Name" required />
+      <input type="email" placeholder="Your Email" required />
+      <textarea rows="4" placeholder="Tell me about your project..." required></textarea>
+      <button type="submit">Send Message</button>
+    </form>
+  </div>
 </body>
 </html>
