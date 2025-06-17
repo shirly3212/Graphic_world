@@ -78,7 +78,7 @@
     // Character
     let character;
     const loader = new GLTFLoader();
-    loader.load('your-character.glb', (gltf) => {
+    loader.load('A_short_woman_with_f_0617162210.glb', (gltf) => {
       character = gltf.scene;
       character.scale.set(1.5, 1.5, 1.5);
       character.position.set(0, 0, 0);
@@ -123,6 +123,8 @@
     document.addEventListener('keydown', (e) => keys[e.code] = true);
     document.addEventListener('keyup', (e) => keys[e.code] = false);
 
+    const triggered = new Set();
+
     function animate() {
       requestAnimationFrame(animate);
       controls.update();
@@ -135,11 +137,11 @@
         if (keys['ArrowRight']) character.position.x += speed;
 
         scene.children.forEach(obj => {
-          if (obj.userData.destination) {
+          if (obj.userData.destination && !triggered.has(obj.userData.destination)) {
             const dist = character.position.distanceTo(obj.position);
             if (dist < 2) {
-              alert("Entering world: " + obj.userData.destination);
-              // window.location.href = obj.userData.destination + '.html';
+              triggered.add(obj.userData.destination);
+              window.location.href = obj.userData.destination.toLowerCase().replace(/ /g, '_') + '.html';
             }
           }
         });
