@@ -21,13 +21,14 @@
 <body>
   <div id="info">Use arrow keys to move. Approach a portal to enter a world.</div>
 
-  <script type="module">
-    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-    import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
-    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
-    import { FontLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/FontLoader.js';
-    import { TextGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/geometries/TextGeometry.js';
+  <!-- Load libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/loaders/FontLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/geometries/TextGeometry.js"></script>
 
+  <script>
     let scene = new THREE.Scene();
     scene.background = new THREE.CubeTextureLoader().load([
       'https://i.imgur.com/0Z8F0hB.jpg',
@@ -43,7 +44,7 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    const controls = new OrbitControls(camera, renderer.domElement);
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.enablePan = false;
     controls.enableZoom = false;
@@ -77,12 +78,15 @@
 
     // Character
     let character;
-    const loader = new GLTFLoader();
+    const loader = new THREE.GLTFLoader();
     loader.load('A_short_woman_with_f_0617162210.glb', (gltf) => {
       character = gltf.scene;
       character.scale.set(1.5, 1.5, 1.5);
       character.position.set(0, 0, 0);
       scene.add(character);
+    }, undefined, (error) => {
+      console.error('GLB load error:', error);
+      document.getElementById('info').textContent = 'Failed to load character!';
     });
 
     // Portals
@@ -93,7 +97,7 @@
       { name: "Animation", position: [10, 2, 10] }
     ];
 
-    const fontLoader = new FontLoader();
+    const fontLoader = new THREE.FontLoader();
     fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', (font) => {
       portals.forEach(({ name, position }) => {
         const ring = new THREE.Mesh(
@@ -104,7 +108,7 @@
         ring.rotation.x = Math.PI / 2;
         scene.add(ring);
 
-        const textGeo = new TextGeometry(name, {
+        const textGeo = new THREE.TextGeometry(name, {
           font: font,
           size: 0.5,
           height: 0.1
