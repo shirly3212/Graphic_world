@@ -1,71 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Fantasy Portfolio</title>
-    <style>
-      body { margin: 0; overflow: hidden; }
-      canvas { display: block; }
-    </style>
-  </head>
-  <body>
-    <script type="module">
-      import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-      import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
-      import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+<head>
+  <meta charset="UTF-8" />
+  <title>Fantasy Portfolio</title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    canvas { display: block; }
+    #info {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: white;
+      font-family: sans-serif;
+      background: rgba(0,0,0,0.4);
+      padding: 10px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div id="info">השתמשי בחצים כדי לזוז וגשי לשערים</div>
 
-      let scene = new THREE.Scene();
-      let camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-      let renderer = new THREE.WebGLRenderer({ antialias: true });
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      document.body.appendChild(renderer.domElement);
+  <script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+    import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
 
-      let controls = new OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true;
+    let scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x1a0033);
+    let camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    let renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 
-      let light = new THREE.HemisphereLight(0xffffff, 0x444444);
-      light.position.set(0, 200, 0);
-      scene.add(light);
+    let controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
 
-      // קרקע
-      const ground = new THREE.Mesh(
-        new THREE.PlaneGeometry(100, 100),
-        new THREE.MeshStandardMaterial({ color: 0x228822 })
-      );
-      ground.rotation.x = -Math.PI / 2;
-      scene.add(ground);
+    const light = new THREE.HemisphereLight(0xffffff, 0x444444);
+    scene.add(light);
 
-      // דמות
-      let character;
-      const loader = new GLTFLoader();
-      loader.load('your-character.glb', (gltf) => {
-        character = gltf.scene;
-        character.scale.set(1.5, 1.5, 1.5);
-        scene.add(character);
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(200, 200),
+      new THREE.MeshStandardMaterial({ color: 0x223322 })
+    );
+    ground.rotation.x = -Math.PI / 2;
+    scene.add(ground);
+
+    // דמות
+    let character;
+    const loader = new GLTFLoader();
+    loader.load('your-character.glb', (gltf) => {
+      character = gltf.scene;
+      character.scale.set(1.5, 1.5, 1.5);
+      character.position.set(0, 0, 0);
+      scene.add(character);
+    });
+
+    // שערים (עולמות)
+    const portals = [
+      { name: "Web Developer", position: [10, 0, -10] },
+      { name: "Graphic Design", position: [-10, 0, -10] },
+      { name: "AI", position: [-10, 0, 10] },
+      { name: "Animation", position: [10, 0, 10] }
+    ];
+
+    const fontLoader = new THREE.FontLoader();
+    fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+      portals.forEach(({ name, position }) => {
+        const geo = new THREE.TorusGeometry(1.5, 0.3, 16, 100);
+        const mat = new THREE.MeshStandardMaterial({ color: 0xff00ff, emissive: 0x440044 });
+        const ring = new THREE.Mesh(geo, mat);
+        ring.position.set(...position);
+        ring.rotation.x = Math.PI / 2;
+        scene.add(ring);
+
+        const textGeo = new THREE.TextGeometry(name, {
+          font: font,
+          size: 0.5,
+          height: 0.1
+        });
+        const textMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const text = new THREE.Mesh(textGeo, textMat);
+        text.position.set(position[0] - 2, 2.5, position[2]);
+        scene.add(text);
+
+        ring.userData.destination = name;
       });
+    });
 
-      camera.position.set(0, 2, 5);
+    camera.position.set(0, 3, 7);
 
-      // תנועה עם חצים
-      const keys = {};
-      document.addEventListener('keydown', (e) => { keys[e.code] = true; });
-      document.addEventListener('keyup', (e) => { keys[e.code] = false; });
+    const keys = {};
+    document.addEventListener('keydown', e => keys[e.code] = true);
+    document.addEventListener('keyup', e => keys[e.code] = false);
 
-      function animate() {
-        requestAnimationFrame(animate);
-        controls.update();
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
 
-        if (character) {
-          if (keys['ArrowUp']) character.position.z -= 0.05;
-          if (keys['ArrowDown']) character.position.z += 0.05;
-          if (keys['ArrowLeft']) character.rotation.y += 0.03;
-          if (keys['ArrowRight']) character.rotation.y -= 0.03;
-        }
+      if (character) {
+        const speed = 0.1;
+        if (keys['ArrowUp']) character.position.z -= speed;
+        if (keys['ArrowDown']) character.position.z += speed;
+        if (keys['ArrowLeft']) character.position.x -= speed;
+        if (keys['ArrowRight']) character.position.x += speed;
 
-        renderer.render(scene, camera);
+        // בדיקת קרבה לשערים
+        scene.children.forEach(obj => {
+          if (obj.userData.destination) {
+            const dist = character.position.distanceTo(obj.position);
+            if (dist < 2) {
+              alert("נכנסת לעולם: " + obj.userData.destination);
+              // אפשר להחליף alert בקישור: window.location.href = 'web.html';
+            }
+          }
+        });
       }
 
-      animate();
-    </script>
-  </body>
+      renderer.render(scene, camera);
+    }
+
+    animate();
+  </script>
+</body>
 </html>
