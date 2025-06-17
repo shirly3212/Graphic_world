@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+     
+    <meta charset="UTF-8" />
+      <title>Fantasy Portfolio World</title>
+      <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-family: sans-serif;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px;
+            border-radius: 8px;
+            z-index: 1000;
+            /* ודא שהוא מעל הקנבס */
+        }
+    </style>
+</head>
+
+<body>
+      <div id="info">השתמשי בחצים כדי לזוז וגשי לשערים</div>
+
+     
+    <script type="module">
+        // ייבוא כל המודולים של Three.js מ-unpkg.com
+        // Importing all Three.js modules from unpkg.com
+        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+        import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+        import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+        import { FontLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/FontLoader.js';
+        import { TextGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/geometries/TextGeometry.js';
+
+
+        let scene = new THREE.Scene();
+        // רקע כדורי (Skybox) באמצעות טקסטורות קוביה
+        // Skybox background using cube textures
+        scene.background = new THREE.CubeTextureLoader().load([
+            'https://i.imgur.com/0Z8F0hB.jpg', // right
+            'https://i.imgur.com/0Z8F0hB.jpg', // left
+            'https://i.imgur.com/0Z8F0hB.jpg', // up
+            'https://i.imgur.com/0Z8F0hB.jpg', // down
+            'https://i.imgur.com/0Z8F0hB.jpg', // front
+            'https://i.imgur.com/0Z8F0hB.jpg'  // back
+        ]);
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.enablePan = false;
+        controls.enableZoom = false;
+
+        const light = new THREE.HemisphereLight(0xffffff, 0x444444);
+        light.position.set(0, 200, 0);
+        scene.add(light);
+
+        // איים מרחפים
+        // Floating islands
+        function createIsland(x, z) {
+            const geo = new THREE.ConeGeometry(4, 8, 8); // בסיס האי
+            const mat = new THREE.MeshStandardMaterial({ color: 0x445522 }); // צבע אדמה
+            const island = new THREE.Mesh(geo, mat);
+            island.position.set(x, -2, z);
+            island.rotation.x = Math.PI; // הופך את החרוט הפוך
+            scene.add(island);
+
+            const top = new THREE.Mesh(
+                new THREE.CircleGeometry(4, 32), // חלק עליון שטוח
+                new THREE.MeshStandardMaterial({ color: 0x228822 }) // צבע דשא
+            );
+            top.rotation.x = -Math.PI / 2;
+            top.position.set(x, 2, z); // ממוקם מעל החרוט
+            scene.add(top);
+        }
+
+        createIsland(10, -10);
+        createIsland(-10, -10);
+        createIsland(-10, 10);
+        createIsland(10, 10);
+
+        // דמות - כאן נטמיע את קובץ ה-GLB שלך
+        // Character - here we embed your GLB file
+        let character;
+        const loader = new GLTFLoader();
+        // *** שנה את הנתיב ל-GLB שלך כאן! ***
+        // *** Change the path to your GLB here! ***
+        // אם הקובץ באותה תיקייה כמו קובץ ה-HTML, השתמש ב-'./your-character.glb'
+        // If the file is in the same directory as your HTML file, use './your-character.glb'
+        // אם הקובץ ב-URL מלא (לדוגמה, מאוחסן ב-GitHub Raw): 'https://raw.githubusercontent.com/.../your-character.glb'
+        // If the file is at a full URL (e.g., hosted on GitHub Raw): 'https://raw.githubusercontent.com/.../your-character.glb'
+        loader.load('./your-character.glb', (gltf) => {
+            character = gltf.scene;
+            // ייתכן שתצטרך לכוונן את קנה המידה והמיקום בהתאם למודל ה-GLB שלך
+            // You may need to adjust scale and position depending on your GLB model
+            character.scale.set(1.5, 1.5, 1.5); // דוגמה לקנה מידה
+            character.position.set(0, 2.5, 0); // מיקום התחלתי מעל האי המרכזי
+            scene.add(character);
+            console.log('GLB character loaded successfully!', character);
+        }, (xhr) => {
+            console.log('GLB loading progress: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
+        }, (error) => {
+            console.error('GLB load error:', error);
+            document.getElementById('info').textContent = 'Failed to load character! Check console for errors.';
+        });
+
+        // שערים (עולמות)
+        const portals = [
+            { name: "Web Developer", position: [10, 2, -10] },
+            { name: "Graphic Design", position: [-10, 2, -10] },
+            { name: "AI", position: [-10, 2, 10] },
+            { name: "Animation", position: [10, 2, 10] }
+        ];
+
+        const fontLoader = new FontLoader(); // שימוש ב-FontLoader המיובא
+        fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', (font) => {
+            portals.forEach(({ name, position }) => {
+                const ring = new THREE.Mesh(
+                    new THREE.TorusGeometry(1.5, 0.3, 16, 100),
+                    new THREE.MeshStandardMaterial({ color: 0xff00ff, emissive: 0x440044 })
+                );
+                ring.position.set(...position);
+                ring.rotation.x = Math.PI / 2;
+                scene.add(ring);
+
+                const textGeo = new TextGeometry(name, { // שימוש ב-TextGeometry המיובא
+                    font: font,
+                    size: 0.5,
+                    height: 0.1
+                });
+                const text = new THREE.Mesh(textGeo, new THREE.MeshBasicMaterial({ color: 0xffffff }));
+                text.position.set(position[0] - 2, position[1] + 2, position[2]);
+                scene.add(text);
+
+                ring.userData.destination = name;
+            });
+        }, undefined, (error) => {
+            console.error('Font load error:', error);
+            document.getElementById('info').textContent = 'Failed to load font! Check console for errors.';
+        });
+
+        camera.position.set(0, 5, 10);
+
+        const keys = {};
+        document.addEventListener('keydown', (e) => keys[e.code] = true);
+        document.addEventListener('keyup', (e) => keys[e.code] = false);
+
+        const triggered = new Set(); // עוקב אחר שערים שכבר הופעלו
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+
+            if (character) {
+                const speed = 0.1;
+                if (keys['ArrowUp']) character.position.z -= speed;
+                if (keys['ArrowDown']) character.position.z += speed;
+                if (keys['ArrowLeft']) character.position.x -= speed;
+                if (keys['ArrowRight']) character.position.x += speed;
+
+                // בדיקת קרבה לשערים
+                scene.children.forEach(obj => {
+                    if (obj.userData.destination && !triggered.has(obj.userData.destination)) {
+                        const dist = character.position.distanceTo(obj.position);
+                        if (dist < 2) {
+                            triggered.add(obj.userData.destination); // מונע הפעלות מרובות
+                            alert("נכנסת לעולם: " + obj.userData.destination);
+                            // לדוגמה, הפנה לעמוד אחר:
+                            // window.location.href = obj.userData.destination.toLowerCase().replace(/ /g, '_') + '.html';
+                        }
+                    }
+                });
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+</body>
+
+</html>
