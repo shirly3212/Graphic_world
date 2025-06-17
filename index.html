@@ -104,7 +104,7 @@
         // If the file is in the same directory as your HTML file, use './your-character.glb'
         // אם הקובץ ב-URL מלא (לדוגמה, מאוחסן ב-GitHub Raw): 'https://raw.githubusercontent.com/.../your-character.glb'
         // If the file is at a full URL (e.g., hosted on GitHub Raw): 'https://raw.githubusercontent.com/.../your-character.glb'
-        loader.load('./your-character.glb', (gltf) => {
+        loader.load('0./your-character.glb', (gltf) => {
             character = gltf.scene;
             // ייתכן שתצטרך לכוונן את קנה המידה והמיקום בהתאם למודל ה-GLB שלך
             // You may need to adjust scale and position depending on your GLB model
