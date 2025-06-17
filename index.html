@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Fantasy Portfolio</title>
+  <title>Fantasy Portfolio World</title>
   <style>
     body { margin: 0; overflow: hidden; }
     canvas { display: block; }
@@ -19,34 +19,63 @@
   </style>
 </head>
 <body>
-  <div id="info">השתמשי בחצים כדי לזוז וגשי לשערים</div>
+  <div id="info">Use arrow keys to move. Approach a portal to enter a world.</div>
 
   <script type="module">
     import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
     import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
     import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+    import { FontLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/FontLoader.js';
+    import { TextGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/geometries/TextGeometry.js';
 
     let scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x1a0033);
-    let camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-    let renderer = new THREE.WebGLRenderer({ antialias: true });
+    scene.background = new THREE.CubeTextureLoader().load([
+      'https://i.imgur.com/0Z8F0hB.jpg',
+      'https://i.imgur.com/0Z8F0hB.jpg',
+      'https://i.imgur.com/0Z8F0hB.jpg',
+      'https://i.imgur.com/0Z8F0hB.jpg',
+      'https://i.imgur.com/0Z8F0hB.jpg',
+      'https://i.imgur.com/0Z8F0hB.jpg'
+    ]);
+
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    let controls = new OrbitControls(camera, renderer.domElement);
+    const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
+    controls.enablePan = false;
+    controls.enableZoom = false;
 
     const light = new THREE.HemisphereLight(0xffffff, 0x444444);
+    light.position.set(0, 200, 0);
     scene.add(light);
 
-    const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(200, 200),
-      new THREE.MeshStandardMaterial({ color: 0x223322 })
-    );
-    ground.rotation.x = -Math.PI / 2;
-    scene.add(ground);
+    // Floating islands
+    function createIsland(x, z) {
+      const geo = new THREE.ConeGeometry(4, 8, 8);
+      const mat = new THREE.MeshStandardMaterial({ color: 0x445522 });
+      const island = new THREE.Mesh(geo, mat);
+      island.position.set(x, -2, z);
+      island.rotation.x = Math.PI;
+      scene.add(island);
 
-    // דמות
+      const top = new THREE.Mesh(
+        new THREE.CircleGeometry(4, 32),
+        new THREE.MeshStandardMaterial({ color: 0x228822 })
+      );
+      top.rotation.x = -Math.PI/2;
+      top.position.set(x, 2, z);
+      scene.add(top);
+    }
+
+    createIsland(10, -10);
+    createIsland(-10, -10);
+    createIsland(-10, 10);
+    createIsland(10, 10);
+
+    // Character
     let character;
     const loader = new GLTFLoader();
     loader.load('your-character.glb', (gltf) => {
@@ -56,43 +85,43 @@
       scene.add(character);
     });
 
-    // שערים (עולמות)
+    // Portals
     const portals = [
-      { name: "Web Developer", position: [10, 0, -10] },
-      { name: "Graphic Design", position: [-10, 0, -10] },
-      { name: "AI", position: [-10, 0, 10] },
-      { name: "Animation", position: [10, 0, 10] }
+      { name: "Web Developer", position: [10, 2, -10] },
+      { name: "Graphic Design", position: [-10, 2, -10] },
+      { name: "AI", position: [-10, 2, 10] },
+      { name: "Animation", position: [10, 2, 10] }
     ];
 
-    const fontLoader = new THREE.FontLoader();
-    fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+    const fontLoader = new FontLoader();
+    fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', (font) => {
       portals.forEach(({ name, position }) => {
-        const geo = new THREE.TorusGeometry(1.5, 0.3, 16, 100);
-        const mat = new THREE.MeshStandardMaterial({ color: 0xff00ff, emissive: 0x440044 });
-        const ring = new THREE.Mesh(geo, mat);
+        const ring = new THREE.Mesh(
+          new THREE.TorusGeometry(1.5, 0.3, 16, 100),
+          new THREE.MeshStandardMaterial({ color: 0xff00ff, emissive: 0x440044 })
+        );
         ring.position.set(...position);
         ring.rotation.x = Math.PI / 2;
         scene.add(ring);
 
-        const textGeo = new THREE.TextGeometry(name, {
+        const textGeo = new TextGeometry(name, {
           font: font,
           size: 0.5,
           height: 0.1
         });
-        const textMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        const text = new THREE.Mesh(textGeo, textMat);
-        text.position.set(position[0] - 2, 2.5, position[2]);
+        const text = new THREE.Mesh(textGeo, new THREE.MeshBasicMaterial({ color: 0xffffff }));
+        text.position.set(position[0] - 2, position[1] + 2, position[2]);
         scene.add(text);
 
         ring.userData.destination = name;
       });
     });
 
-    camera.position.set(0, 3, 7);
+    camera.position.set(0, 5, 10);
 
     const keys = {};
-    document.addEventListener('keydown', e => keys[e.code] = true);
-    document.addEventListener('keyup', e => keys[e.code] = false);
+    document.addEventListener('keydown', (e) => keys[e.code] = true);
+    document.addEventListener('keyup', (e) => keys[e.code] = false);
 
     function animate() {
       requestAnimationFrame(animate);
@@ -105,13 +134,12 @@
         if (keys['ArrowLeft']) character.position.x -= speed;
         if (keys['ArrowRight']) character.position.x += speed;
 
-        // בדיקת קרבה לשערים
         scene.children.forEach(obj => {
           if (obj.userData.destination) {
             const dist = character.position.distanceTo(obj.position);
             if (dist < 2) {
-              alert("נכנסת לעולם: " + obj.userData.destination);
-              // אפשר להחליף alert בקישור: window.location.href = 'web.html';
+              alert("Entering world: " + obj.userData.destination);
+              // window.location.href = obj.userData.destination + '.html';
             }
           }
         });
