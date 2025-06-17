@@ -1,866 +1,1383 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>3D Fantasy World Portfolio | Shirly</title>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
-  <style>
-    /* Basic reset and font application */
-    html, body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden; /* Hide scrollbars as content is fixed */
-      font-family: 'Manrope', sans-serif; /* Apply Manrope font */
-      background: black; /* Dark background for space theme */
-      color: white; /* White text for contrast */
-      cursor: none; /* Hide default cursor to use custom particle cursor */
-    }
-    
-    /* Canvas styling for full screen */
-    canvas {
-      display: block; /* Remove extra space below canvas */
-      width: 100vw; /* Full viewport width */
-      height: 100vh; /* Full viewport height */
-      position: fixed; /* Fix canvas position */
-      top: 0;
-      left: 0;
-      z-index: 0; /* Ensure canvas is in the background */
-    }
-    
-    /* Cursor particle container */
-    #cursor-particles {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 0; /* Particles are created dynamically */
-      height: 0;
-      pointer-events: none; /* Allow clicks to pass through */
-      z-index: 9999; /* Ensure particles are on top */
-    }
-    
-    /* Individual particle styling */
-    .particle {
-      position: absolute;
-      width: 4px;
-      height: 4px;
-      border-radius: 50%; /* Make particles circular */
-      background: radial-gradient(circle, rgba(0,255,255,0.8) 0%, rgba(255,102,0,0.4) 100%); /* Gradient background */
-      box-shadow: 0 0 8px rgba(0,255,255,0.6); /* Glow effect */
-      animation: fadeMove 0.6s ease-out forwards; /* Animation for movement and fading */
-    }
-    
-    /* Keyframes for particle animation */
-    @keyframes fadeMove {
-      0% { opacity: 1; transform: translate(0, 0) scale(1); } /* Start opaque and normal size */
-      100% { opacity: 0; transform: translate(-12px, -12px) scale(0.1); } /* End transparent, moved, and scaled down */
-    }
-    
-    /* UI container for title and subtitle */
-    #ui {
-      position: absolute;
-      top: 10px; /* Adjusted to be higher */
-      left: 50%;
-      transform: translateX(-50%); /* Center horizontally */
-      text-align: center;
-      z-index: 10; /* Above canvas */
-    }
-    
-    /* Title styling with glowing effect */
-    .title {
-      font-size: 2.8rem;
-      color: #fff;
-      text-shadow: 0 0 15px #00ffff, 0 0 30px #ff6600, 0 0 45px #ff3388; /* Multiple color shadows */
-      animation: glowPulse 3s ease-in-out infinite alternate; /* Pulsing glow animation */
-      font-weight: 800;
-      letter-spacing: 2px;
-    }
-    
-    /* Subtitle styling with subtle glow */
-    .subtitle {
-      font-size: 1.4rem;
-      color: #cccccc;
-      animation: subtitleGlow 4s ease-in-out infinite alternate; /* Subtle glow animation */
-      font-weight: 400;
-      margin-top: 5px;
-    }
-    
-    /* Keyframes for title glow pulse */
-    @keyframes glowPulse {
-      0% { text-shadow: 0 0 10px #00ffff, 0 0 20px #ff6600, 0 0 30px #ff3388; }
-      50% { text-shadow: 0 0 20px #00ffff, 0 0 40px #ff6600, 0 0 60px #ff3388; }
-      100% { text-shadow: 0 0 15px #00ffff, 0 0 30px #ff6600, 0 0 45px #ff3388; }
-    }
-    
-    /* Keyframes for subtitle glow */
-    @keyframes subtitleGlow {
-      from { text-shadow: 0 0 5px #00ffff; color: #cccccc; }
-      to { text-shadow: 0 0 15px #ff6600; color: #ffffff; }
-    }
-    
-    /* Contact section styling */
-    .contact-section {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%); /* Center horizontally */
-      z-index: 10;
-      background: linear-gradient(135deg, rgba(0,20,40,0.9), rgba(20,0,40,0.8)); /* Dark gradient background */
-      padding: 25px;
-      border-radius: 15px;
-      border: 2px solid rgba(0,255,255,0.4); /* Cyan border */
-      backdrop-filter: blur(15px); /* Blurry background effect */
-      max-width: 320px;
-      width: 90%; /* Responsive width */
-      box-shadow: 0 0 30px rgba(0,255,255,0.2); /* Soft shadow */
-    }
-    
-    .contact-section h2 {
-      margin-top: 0;
-      color: #00ffff; /* Cyan color */
-      text-align: center;
-      text-shadow: 0 0 10px #00ffff; /* Glowing text effect */
-    }
-    
-    .contact-section input, .contact-section textarea {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 12px;
-      border-radius: 10px;
-      border: 2px solid rgba(0,255,255,0.3);
-      background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(0,255,255,0.05)); /* Transparent gradient background */
-      color: white;
-      box-sizing: border-box; /* Include padding in width */
-      transition: all 0.3s ease; /* Smooth transition on focus */
-    }
-    
-    .contact-section input:focus, .contact-section textarea:focus {
-      border-color: #00ffff; /* Cyan border on focus */
-      box-shadow: 0 0 15px rgba(0,255,255,0.3); /* Glow on focus */
-      outline: none; /* Remove default outline */
-    }
-    
-    .contact-section input::placeholder, .contact-section textarea::placeholder {
-      color: rgba(255,255,255,0.7); /* Lighter placeholder text */
-    }
-    
-    .contact-section button {
-      background: linear-gradient(145deg, #ff6600, #00ffff, #ff3388); /* Multi-color gradient */
-      color: white;
-      padding: 12px 25px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      width: 100%;
-      font-weight: bold;
-      font-size: 1rem;
-      transition: all 0.3s ease; /* Smooth transition on hover */
-      text-shadow: 0 0 5px rgba(0,0,0,0.5);
-    }
-    
-    .contact-section button:hover {
-      transform: translateY(-3px); /* Lift button on hover */
-      box-shadow: 0 8px 25px rgba(0,255,255,0.4), 0 0 20px rgba(255,102,0,0.3); /* Enhanced shadow on hover */
-    }
-    
-    /* Category buttons container for circular layout */
-    #category-buttons {
-      position: absolute;
-      top: 55%; /* Adjusted to be lower */
-      left: 50%;
-      width: 450px; /* Fixed size for circular arrangement */
-      height: 450px;
-      pointer-events: auto; /* Allow interaction with buttons */
-      z-index: 9; /* Above canvas, below UI text */
-      transform: translate(-50%, -50%); /* Center the container */
-    }
-    
-    /* Individual category button styling */
-    #category-buttons a {
-      position: absolute;
-      transform: translate(-50%, -50%); /* Center button itself within its positioned space */
-      background: linear-gradient(145deg, #ff6600, #ff3388, #00aaff, #ffdd00); /* Dynamic gradient */
-      background-size: 300% 300%; /* For gradient animation */
-      color: white;
-      border-radius: 999px; /* Pill shape */
-      padding: 15px 30px;
-      text-decoration: none;
-      box-shadow: 0 0 25px rgba(255,102,0,0.6), inset 0 0 15px rgba(255,255,255,0.1);
-      font-weight: bold;
-      transition: all 0.4s ease; /* Smooth transition on hover */
-      cursor: pointer;
-      font-size: 1rem;
-      backdrop-filter: blur(8px); /* Blurry background for buttons */
-      border: 2px solid rgba(255,255,255,0.3);
-      animation: gradientShift 4s ease-in-out infinite; /* Gradient shift animation */
-      text-shadow: 0 0 8px rgba(0,0,0,0.7);
-    }
-    
-    /* Keyframes for gradient shift animation */
-    @keyframes gradientShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-    
-    /* Category button hover effects */
-    #category-buttons a:hover {
-      transform: translate(-50%, -50%) scale(1.15); /* Enlarge on hover */
-      box-shadow: 0 0 40px rgba(255,102,0,1), 0 0 25px rgba(255,51,136,0.8), 0 0 15px rgba(0,170,255,0.6); /* Intense glow on hover */
-      animation-duration: 1s; /* Faster animation on hover */
-    }
-    
-    /* Floating info box */
-    .floating-info {
-      position: absolute;
-      top: 50%;
-      right: 30px; /* Positioned to the right */
-      transform: translateY(-50%); /* Center vertically */
-      background: linear-gradient(135deg, rgba(0,50,100,0.8), rgba(50,0,100,0.7)); /* Dark blue/purple gradient */
-      padding: 20px;
-      border-radius: 12px;
-      border: 1px solid rgba(0,255,255,0.4);
-      backdrop-filter: blur(10px);
-      max-width: 200px;
-      z-index: 8;
-      box-shadow: 0 0 20px rgba(0,255,255,0.2);
-    }
-    
-    .floating-info h3 {
-      color: #00ffff; /* Cyan color */
-      margin-top: 0;
-      font-size: 1.1rem;
-    }
-    
-    .floating-info p {
-      font-size: 0.9rem;
-      line-height: 1.4;
-      color: #cccccc;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mario 3D Portfolio World</title>
+    <!-- Three.js library for 3D rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        /* Basic reset for consistent styling */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    /* Media queries for responsiveness */
-    @media (max-width: 768px) {
-      .title {
-        font-size: 2rem;
-      }
-      .subtitle {
-        font-size: 1.1rem;
-      }
-      #category-buttons {
-        width: 300px; /* Smaller button container */
-        height: 300px;
-      }
-      #category-buttons a {
-        padding: 10px 20px;
-        font-size: 0.9rem;
-      }
-      .floating-info {
-        right: auto; /* Remove fixed right position */
-        left: 50%; /* Center horizontally */
-        bottom: 120px; /* Adjust position to avoid overlapping contact form */
-        top: auto; /* Allow bottom to take precedence */
-        transform: translateX(-50%);
-        max-width: 90%;
-      }
-      .contact-section {
-        max-width: 90%; /* Full width on smaller screens */
-        bottom: 20px;
-      }
-    }
-  </style>
+        /* Body styling for a clean, full-screen experience */
+        body {
+            font-family: 'Arial', sans-serif;
+            overflow: hidden; /* Prevent scrolling */
+            background: #5C94FC; /* Mario-sky blue */
+            color: white;
+        }
+
+        /* Container for the 3D game canvas */
+        #gameContainer {
+            position: relative;
+            width: 100vw; /* Full viewport width */
+            height: 100vh; /* Full viewport height */
+            display: flex; /* Use flexbox to center canvas if needed */
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Canvas styling to ensure it fills the container */
+        canvas {
+            display: block; /* Remove extra space below canvas */
+        }
+
+        /* Overlay for UI elements (controls, score, world info) */
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Allow clicks to pass through to canvas by default */
+            z-index: 1000;
+        }
+
+        /* Styling for control information panel */
+        .controls-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
+            padding: 15px;
+            border-radius: 10px; /* Rounded corners */
+            border: 3px solid #FFD700; /* Gold border */
+            pointer-events: auto; /* Allow interaction with this panel */
+        }
+
+        .controls-info h3 {
+            color: #FFD700; /* Gold heading */
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .controls-info p {
+            margin: 5px 0;
+            font-size: 0.9rem;
+        }
+
+        /* Reset Camera Button */
+        .reset-camera-btn {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(145deg, #007bff, #0056b3); /* Blue gradient */
+            border: 3px solid #004085;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            pointer-events: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1001; /* Above other UI elements if needed */
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .reset-camera-btn:hover {
+            background: linear-gradient(145deg, #0056b3, #007bff);
+            transform: translateX(-50%) translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        /* New: World List Overlay */
+        .world-list-overlay {
+            position: absolute;
+            top: 80px; /* Below the reset camera button */
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 2px solid #fff;
+            text-align: center;
+            color: white;
+            pointer-events: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .world-list-overlay h3 {
+            margin: 0;
+            color: #FFD700;
+            font-size: 1.1rem;
+        }
+
+        .world-list-overlay .world-names {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            font-size: 0.95rem;
+        }
+        .world-list-overlay .world-names span {
+            padding: 2px 5px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Styling for score panel */
+        .score-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            border: 3px solid #FFD700;
+            text-align: center;
+            pointer-events: auto;
+        }
+
+        .score-panel h3 {
+            color: #FFD700;
+            margin-bottom: 10px;
+        }
+
+        /* Styling for world information panel */
+        .world-info {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%); /* Center horizontally */
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid #FF6B6B; /* Red border */
+            text-align: center;
+            max-width: 400px;
+            pointer-events: auto;
+            display: none; /* Hidden by default */
+        }
+
+        /* Class to show the world info panel with animation */
+        .world-info.active {
+            display: block;
+            animation: worldInfoPop 0.5s ease-out forwards; /* Pop animation */
+        }
+
+        /* Keyframe animation for the world info panel */
+        @keyframes worldInfoPop {
+            0% { transform: translateX(-50%) scale(0.8) translateY(20px); opacity: 0; }
+            100% { transform: translateX(-50%) scale(1) translateY(0px); opacity: 1; }
+        }
+
+        .world-info h2 {
+            color: #FFD700;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+
+        .world-info p {
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        /* Styling for the "Enter World" button */
+        .enter-btn {
+            background: linear-gradient(145deg, #FF6B6B, #FF3333); /* Red gradient */
+            border: 3px solid #CC0000;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease; /* Smooth transition for hover effects */
+            pointer-events: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* Subtle shadow */
+        }
+
+        .enter-btn:hover {
+            background: linear-gradient(145deg, #FF3333, #FF6B6B);
+            transform: translateY(-2px); /* Slight lift on hover */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Loading screen styling */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #5C94FC, #87CEEB); /* Blue sky gradient */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            transition: opacity 1s ease-out; /* Fade out effect */
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none; /* No interaction when hidden */
+        }
+
+        /* Mario logo styling on loading screen */
+        .mario-logo {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #FFD700; /* Gold color */
+            text-shadow: 3px 3px 0px #FF6B6B; /* Red shadow for retro look */
+            margin-bottom: 20px;
+            animation: logoFloat 2s infinite ease-in-out; /* Floating animation */
+        }
+
+        /* Keyframe animation for the floating logo */
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Loading bar styling */
+        .loading-bar {
+            width: 300px;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid #FFD700;
+        }
+
+        .loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #FF6B6B, #FFD700); /* Red to gold gradient */
+            width: 0%; /* Starts at 0% and expands */
+            transition: width 0.3s ease;
+            border-radius: 8px;
+        }
+
+        /* Mobile controls styling */
+        .mobile-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: none; /* Hidden by default on larger screens */
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: auto;
+        }
+
+        .mobile-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 3px solid #FFD700;
+            border-radius: 50%; /* Circular buttons */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            cursor: pointer;
+            user-select: none; /* Prevent text selection */
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s ease;
+        }
+
+        .mobile-btn:active {
+            transform: scale(0.95); /* Visual feedback on press */
+        }
+
+        .mobile-dpad {
+            display: grid;
+            grid-template-columns: repeat(3, 60px); /* 3 columns for d-pad layout */
+            gap: 5px;
+            pointer-events: auto;
+        }
+
+        .mobile-dpad .mobile-btn {
+            border-radius: 10px; /* Square buttons for d-pad */
+        }
+
+        /* Media query for mobile responsiveness */
+        @media (max-width: 768px) {
+            .mobile-controls {
+                display: flex; /* Show mobile controls on small screens */
+            }
+            
+            .controls-info {
+                display: none; /* Hide desktop controls info on small screens */
+            }
+            .reset-camera-btn {
+                top: auto;
+                bottom: 90px; /* Adjust position for mobile, above mobile controls */
+                left: 20px;
+                transform: none; /* Remove translateX centering */
+                right: auto;
+            }
+            .world-list-overlay {
+                top: 70px; /* Adjust position for mobile */
+                width: 90%;
+            }
+        }
+    </style>
 </head>
 <body>
-  <canvas id="galaxy-canvas"></canvas>
-  
-  <!-- Three.js library import -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script>
-    // Initialize Three.js scene with enhanced settings
-    const scene = new THREE.Scene();
-    // Camera setup: PerspectiveCamera(FOV, Aspect Ratio, Near, Far)
-    const camera = new THREE.PerspectiveCamera(65, window.innerWidth/window.innerHeight, 0.1, 2000);
-    camera.position.set(0, 10, 20); // Initial camera position, adjusted for floating island view
+    <!-- Loading screen visible on page load -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="mario-logo">🍄 MARIO PORTFOLIO WORLD 🍄</div>
+        <div class="loading-bar">
+            <div class="loading-progress" id="loadingProgress"></div>
+        </div>
+        <p style="margin-top: 20px; font-size: 1.2rem;">Loading your adventure...</p>
+    </div>
 
-    // Renderer setup
-    const renderer = new THREE.WebGLRenderer({ 
-      canvas: document.getElementById('galaxy-canvas'), 
-      antialias: true, // Smoother edges
-      alpha: true, // Allow transparency
-      powerPreference: "high-performance" // Request high performance GPU
-    });
-    renderer.setSize(window.innerWidth, window.innerHeight); // Set renderer size to full window
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Use device pixel ratio for sharper images
-    renderer.shadowMap.enabled = true; // Enable shadow mapping
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
+    <!-- Main game container -->
+    <div id="gameContainer">
+        <!-- UI overlay for game information and controls -->
+        <div class="ui-overlay">
+            <div class="controls-info">
+                <h3>🎮 בקרות מריו</h3>
+                <p><strong>WASD / חצים:</strong> הזז את מריו</p>
+                <p><strong>רווח:</strong> קפיצה</p>
+                <p><strong>אנטר:</strong> כניסה לעולם</p>
+                <p><strong>עכבר:</strong> הסתכל מסביב</p>
+                <p><strong>Shift:</strong> רוץ מהר</p>
+            </div>
 
-    // Enhanced background with nebula effect
-    scene.background = new THREE.Color(0x0a031e); // Deeper space background color
-    scene.fog = new THREE.FogExp2(0x0a031e, 0.0008); // Exponential fog for depth effect
+            <!-- Reset Camera Button -->
+            <button class="reset-camera-btn" onclick="resetCamera()">
+                <span style="font-size: 1.2em;">📸</span> איפוס מצלמה
+            </button>
 
-    // Enhanced lighting system - more magical and varied
-    const ambientLight = new THREE.AmbientLight(0x6666ff, 0.3); // Subtle blue ambient light
-    scene.add(ambientLight);
+            <!-- New: World List Overlay -->
+            <div class="world-list-overlay" id="worldListOverlay">
+                <h3>🌍 עולמות לחקור:</h3>
+                <div class="world-names" id="worldNames">
+                    <!-- World names will be injected here by JavaScript -->
+                </div>
+            </div>
 
-    const mainLight = new THREE.DirectionalLight(0xffdd00, 1.8); // Golden main light
-    mainLight.position.set(15, 10, 15); // Position the light source
-    mainLight.castShadow = true; // Enable light to cast shadows
-    mainLight.shadow.mapSize.width = 2048; // Higher resolution shadows
-    mainLight.shadow.mapSize.height = 2048;
-    scene.add(mainLight);
+            <div class="score-panel">
+                <h3>🏆 סטטיסטיקות</h3>
+                <p><strong>מטבעות:</strong> <span id="coinCount">0</span></p>
+                <p><strong>מיקום:</strong> <span id="currentWorld">האב</span></p>
+                <p><strong>חיים:</strong> <span id="lives">3</span></p>
+            </div>
 
-    const blueAccentLight = new THREE.PointLight(0x00aaff, 1.2, 100); // Blue point light accent
-    blueAccentLight.position.set(-10, 5, 10);
-    scene.add(blueAccentLight);
+            <div class="world-info" id="worldInfo">
+                <h2 id="worldTitle">ברוך הבא!</h2>
+                <p id="worldDescription">התקרב לאחת הפלטפורמות או למבני הפטרייה כדי לראות פרטים ולהיכנס לעולם!</p>
+                <button class="enter-btn" onclick="enterWorld()" id="enterBtn" style="display: none;">
+                    🚪 כניסה לעולם
+                </button>
+            </div>
 
-    const pinkAccentLight = new THREE.PointLight(0xff3388, 1.0, 80); // Pink point light accent
-    pinkAccentLight.position.set(10, 8, -10);
-    scene.add(pinkAccentLight);
+            <!-- Mobile controls (hidden on desktop) -->
+            <div class="mobile-controls">
+                <div class="mobile-dpad">
+                    <div></div>
+                    <div class="mobile-btn" data-key="w">↑</div>
+                    <div></div>
+                    <div class="mobile-btn" data-key="a">←</div>
+                    <div class="mobile-btn" data-key="s">↓</div>
+                    <div class="mobile-btn" data-key="d">→</div>
+                </div>
+                <div class="mobile-btn" data-key=" ">🦘</div> <!-- Jump button -->
+            </div>
+        </div>
+    </div>
 
-    const greenGlowLight = new THREE.PointLight(0x00ff00, 0.6, 60); // Green glow light
-    greenGlowLight.position.set(0, -5, 5);
-    scene.add(greenGlowLight);
+    <script>
+        // --- Global Game Variables ---
+        let scene, camera, renderer, mario;
+        // Object to track pressed keys
+        let keys = {};
+        // Mouse coordinates for camera rotation
+        let mouseX = 0, mouseY = 0;
+        // Mario's physics properties
+        let marioVelocity = { x: 0, y: 0, z: 0 };
+        let isGrounded = false;
+        // Current world zone Mario is near
+        let currentWorldZone = null;
+        // Game stats
+        let coins = 0;
+        let lives = 3;
+        // Arrays to hold Three.js objects for interaction and environment
+        let interactiveZones = []; // Holds both platforms and mushroom buildings for proximity checks
+        let collectibles = [];
+        let trees = [];
+        let smallMushrooms = []; // Corrected name for clarity for decorative mushrooms
+        let animatedClouds = []; // To store clouds that will move
 
-    // Enhanced star field with multiple layers and colored stars
-    function createStarField(count, spread, size, opacity) {
-      const starGeometry = new THREE.BufferGeometry();
-      const starVertices = [];
-      const starColors = [];
-      
-      for (let i = 0; i < count; i++) {
-        // Random positions within a spread
-        const x = (Math.random() - 0.5) * spread;
-        const y = (Math.random() - 0.5) * spread;
-        const z = (Math.random() - 0.5) * spread;
-        starVertices.push(x, y, z);
-        
-        // Assign random colors to stars
-        const colorChoice = Math.random();
-        const color = new THREE.Color();
-        
-        if (colorChoice < 0.25) {
-          color.setHSL(0.08 + Math.random() * 0.1, 0.9, 0.7); // Orange-yellow stars
-        } else if (colorChoice < 0.5) {
-          color.setHSL(0.55 + Math.random() * 0.15, 1.0, 0.8); // Blue-cyan stars
-        } else if (colorChoice < 0.75) {
-          color.setHSL(0.9 + Math.random() * 0.1, 0.9, 0.7); // Pink-magenta stars
-        } else {
-          color.setHSL(0.75 + Math.random() * 0.1, 0.8, 0.9); // Purple stars
-        }
-        
-        starColors.push(color.r, color.g, color.b);
-      }
-      
-      starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
-      starGeometry.setAttribute('color', new THREE.Float32BufferAttribute(starColors, 3));
-      
-      const starMaterial = new THREE.PointsMaterial({ 
-        vertexColors: true, // Use vertex colors
-        size: size,
-        transparent: true,
-        opacity: opacity,
-        blending: THREE.AdditiveBlending // Brighter blending for stars
-      });
-      
-      return new THREE.Points(starGeometry, starMaterial);
-    }
+        // Clock for delta time calculations (smooth animations)
+        let clock = new THREE.Clock();
 
-    // Create multiple star layers for depth
-    const stars1 = createStarField(4000, 2500, 2.8, 0.8);
-    const stars2 = createStarField(2000, 2000, 1.8, 0.6);
-    const stars3 = createStarField(1000, 1500, 3.5, 0.4);
-    scene.add(stars1);
-    scene.add(stars2);
-    scene.add(stars3);
+        // --- World Data Configuration ---
+        const worlds = {
+            web: {
+                title: "🖥️ עולם פיתוח ווב",
+                description: "חקור את תחום ה-HTML, CSS, JavaScript ופרויקטים מודרניים. בנה חוויות ווב מדהימות!",
+                color: 0xff6b6b, // Red
+                position: { x: -15, z: -15 }, // Platform position
+                mushroomPosition: { x: -30, z: -35 }, // New mushroom building position
+                link: "https://example.com/web-portfolio" // Example link
+            },
+            animation: {
+                title: "🎬 עולם אנימציה", 
+                description: "צלול לתוך גרפיקת תנועה, אנימציה תלת-ממדית ואפקטים ויזואליים. הגש את הרעיונות שלך לחיים!",
+                color: 0x4ecdc4, // Cyan
+                position: { x: 15, z: -15 },
+                mushroomPosition: { x: 30, z: -35 },
+                link: "https://example.com/animation-portfolio"
+            },
+            design: {
+                title: "🎨 עולם עיצוב גרפי",
+                description: "צור זהויות חזותיות מדהימות, לוגואים ומיתוג. בטא יצירתיות באמצעות עיצוב!",
+                color: 0xffe66d, // Yellow
+                position: { x: -15, z: 15 },
+                mushroomPosition: { x: -30, z: 35 },
+                link: "https://example.com/design-portfolio"
+            },
+            ai: {
+                title: "🤖 עולם AI",
+                description: "היכנס לעתיד עם למידת מכונה, רשתות עצביות ואינטליגנציה מלאכותית!",
+                color: 0xa8e6cf, // Light Green
+                position: { x: 15, z: 15 },
+                mushroomPosition: { x: 30, z: 35 },
+                link: "https://example.com/ai-portfolio"
+            }
+        };
 
-    // Main floating island (replaces Earth)
-    let mainIsland;
-    let fantasyStructures = []; // Array to store fantasy structures for animation
+        // --- Game Initialization ---
+        function init() {
+            // Set up the scene, background, and fog
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x5c94fc); // Sky blue
+            scene.fog = new THREE.Fog(0x5c94fc, 50, 200); // Atmospheric fog
 
-    function createMainFloatingIsland() {
-      const islandGroup = new THREE.Group();
+            // Set up the camera (PerspectiveCamera for 3D realism)
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 8, 12); // Initial camera position
 
-      // Main island base - deformed sphere/cylinder for organic shape
-      const islandGeometry = new THREE.CylinderGeometry(10, 12, 4, 64, 8); // Wider cylinder
-      // Deform the cylinder to make it look like a floating landmass
-      const positions = islandGeometry.attributes.position;
-      const tempVertex = new THREE.Vector3();
-      for (let i = 0; i < positions.count; i++) {
-        tempVertex.fromBufferAttribute(positions, i);
-        const radius = tempVertex.length();
-        // More complex noise for rugged terrain
-        const noise = Math.sin(tempVertex.x * 0.5) * Math.cos(tempVertex.z * 0.5) * 0.5 +
-                      Math.sin(tempVertex.x * 1.2) * Math.sin(tempVertex.z * 1.2) * 0.3;
-        tempVertex.y += Math.sin(tempVertex.x * 0.8) * 0.5 + Math.cos(tempVertex.z * 0.8) * 0.5;
-        tempVertex.normalize().multiplyScalar(radius + noise * 1.5);
-        positions.setXYZ(i, tempVertex.x, tempVertex.y, tempVertex.z);
-      }
-      islandGeometry.computeVertexNormals(); // Recalculate normals after deformation
+            // Set up the WebGL renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight); // Set renderer size to full window
+            renderer.shadowMap.enabled = true; // Enable shadow mapping
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
+            document.getElementById('gameContainer').appendChild(renderer.domElement); // Add canvas to HTML
 
-      const islandMaterial = new THREE.MeshStandardMaterial({
-        color: 0x6a5a40, // Earthy brown for land
-        roughness: 0.9,
-        metalness: 0.1
-      });
-      mainIsland = new THREE.Mesh(islandGeometry, islandMaterial);
-      mainIsland.castShadow = true;
-      mainIsland.receiveShadow = true;
-      mainIsland.position.y = -2; // Position it lower
-      islandGroup.add(mainIsland);
+            // Call functions to set up game elements
+            setupLighting();
+            createWorld();
+            createMario();
+            createWorldPlatforms(); // Creates platforms and adds to interactiveZones
+            createMushroomBuildings(); // Creates mushroom buildings and adds to interactiveZones
+            createCollectibles();
+            createTrees(15); // Add 15 trees
+            createSmallMushrooms(10); // Add 10 small decorative mushrooms
+            
+            // Set up event listeners for user input
+            setupEventListeners();
+            
+            // Populate the new world list overlay
+            populateWorldListOverlay();
 
-      // Add detailed vertex colors for a textured look (grass, rock, dirt)
-      const islandColors = [];
-      const mainPositions = mainIsland.geometry.attributes.position;
-      const mainVertex = new THREE.Vector3();
-      for (let i = 0; i < mainPositions.count; i++) {
-        mainVertex.fromBufferAttribute(mainPositions, i);
-        let color = new THREE.Color();
-        
-        // Vary colors based on height and random noise for a textured look
-        if (mainVertex.y > 0.5) {
-          // Top layer: grass/mossy green
-          color.setHSL(0.3 + Math.random() * 0.1, 0.7 + Math.random() * 0.2, 0.4 + Math.random() * 0.1);
-        } else if (mainVertex.y > -1) {
-          // Middle layer: dirt/brown
-          color.setHSL(0.1 + Math.random() * 0.05, 0.6 + Math.random() * 0.2, 0.3 + Math.random() * 0.1);
-        } else {
-          // Bottom layer: rocky/gray-brown
-          color.setHSL(0.08 + Math.random() * 0.05, 0.3 + Math.random() * 0.2, 0.25 + Math.random() * 0.1);
-        }
-        
-        islandColors.push(color.r, color.g, color.b);
-      }
-      mainIsland.geometry.setAttribute('color', new THREE.Float32BufferAttribute(islandColors, 3));
-      mainIsland.material.vertexColors = true;
+            // Start the main game animation loop
+            animate();
 
-      // Add abstract fantasy structures (more varied shapes and glowing properties)
-      for (let i = 0; i < 25; i++) {
-        let structureGeometry;
-        const type = Math.random();
-        if (type < 0.3) {
-          structureGeometry = new THREE.BoxGeometry(1 + Math.random() * 1.5, 3 + Math.random() * 7, 1 + Math.random() * 1.5);
-        } else if (type < 0.6) {
-          structureGeometry = new THREE.ConeGeometry(0.8 + Math.random() * 1.2, 4 + Math.random() * 6, 8);
-        } else {
-          structureGeometry = new THREE.DodecahedronGeometry(1.5 + Math.random() * 1);
+            // Hide the loading screen after a delay
+            setTimeout(() => {
+                document.getElementById('loadingScreen').classList.add('hidden');
+                updateLoadingProgress(100); // Ensure progress bar is full
+            }, 2000); // 2-second loading animation
         }
 
-        const structureMaterial = new THREE.MeshStandardMaterial({
-          color: new THREE.Color().setHSL(0.6 + Math.random() * 0.2, 0.8, 0.6), // Blues and purples
-          emissive: new THREE.Color().setHSL(0.6 + Math.random() * 0.2, 0.8, 0.4), // Glowing parts
-          emissiveIntensity: 0.3 + Math.random() * 0.5
-        });
-        const structure = new THREE.Mesh(structureGeometry, structureMaterial);
-        
-        // Position structures on top of the island
-        const angle = Math.random() * Math.PI * 2;
-        const distance = 4 + Math.random() * 5;
-        structure.position.set(
-          Math.cos(angle) * distance,
-          structure.geometry.parameters.height / 2 + 1 || 1.5, // Handle different geometries
-          Math.sin(angle) * distance
-        );
-        structure.castShadow = true;
-        islandGroup.add(structure);
-        fantasyStructures.push(structure); // Add to array for animation
-      }
-
-      // Add large glowing crystals (more vibrant)
-      for (let i = 0; i < 8; i++) {
-        let crystalGeometry;
-        const crystalType = Math.random();
-        if (crystalType < 0.5) {
-          crystalGeometry = new THREE.DodecahedronGeometry(1 + Math.random() * 0.8);
-        } else {
-          crystalGeometry = new THREE.OctahedronGeometry(1 + Math.random() * 0.8);
+        // --- UI Update Functions ---
+        function updateLoadingProgress(progress) {
+            document.getElementById('loadingProgress').style.width = progress + '%';
         }
 
-        const crystalColors = [0x00ffff, 0xff6600, 0xff3388, 0x00ff00, 0x9900ff, 0xffdd00];
-        const crystalMaterial = new THREE.MeshStandardMaterial({
-          color: crystalColors[Math.floor(Math.random() * crystalColors.length)],
-          emissive: crystalColors[Math.floor(Math.random() * crystalColors.length)],
-          emissiveIntensity: 1.0 + Math.random() * 1.0, // Stronger glow
-          transparent: true,
-          opacity: 0.7
-        });
-        const crystal = new THREE.Mesh(crystalGeometry, crystalMaterial);
-        crystal.position.set(
-          (Math.random() - 0.5) * 15,
-          (Math.random() * 3) - 1.5,
-          (Math.random() - 0.5) * 15
-        );
-        islandGroup.add(crystal);
-      }
-
-      scene.add(islandGroup);
-    }
-    createMainFloatingIsland();
-
-    // Small floating islands
-    window.floatingIslands = []; // Store islands for animation
-    
-    function createFloatingIsland(x, y, z, scale = 1) {
-      const islandGroup = new THREE.Group();
-      
-      // Main island base - more organic shape
-      const islandGeometry = new THREE.IcosahedronGeometry(1.5 * scale, 1); // Icosahedron for more organic, rocky look
-      const islandMaterial = new THREE.MeshStandardMaterial({
-        color: 0x5a4a30, // Earthy brown for land
-        roughness: 0.8,
-        metalness: 0.1
-      });
-      const island = new THREE.Mesh(islandGeometry, islandMaterial);
-      island.castShadow = true;
-      island.receiveShadow = true;
-      islandGroup.add(island);
-
-      // Add detailed vertex colors for the small islands (similar to main island for consistency)
-      const islandColors = [];
-      const positions = island.geometry.attributes.position;
-      const vertex = new THREE.Vector3();
-      for (let i = 0; i < positions.count; i++) {
-        vertex.fromBufferAttribute(positions, i);
-        let color = new THREE.Color();
-        if (vertex.y > 0.5 * scale) {
-          color.setHSL(0.3 + Math.random() * 0.1, 0.7 + Math.random() * 0.2, 0.4 + Math.random() * 0.1);
-        } else if (vertex.y > -0.5 * scale) {
-          color.setHSL(0.1 + Math.random() * 0.05, 0.6 + Math.random() * 0.2, 0.3 + Math.random() * 0.1);
-        } else {
-          color.setHSL(0.08 + Math.random() * 0.05, 0.3 + Math.random() * 0.2, 0.25 + Math.random() * 0.1);
+        function updateCoinCount(amount) {
+            coins += amount;
+            document.getElementById('coinCount').innerText = coins;
         }
-        islandColors.push(color.r, color.g, color.b);
-      }
-      island.geometry.setAttribute('color', new THREE.Float32BufferAttribute(islandColors, 3));
-      island.material.vertexColors = true;
-      
-      // Add small vegetation/details (more varied)
-      for (let i = 0; i < 5; i++) {
-        const vegHeight = 0.3 * scale + Math.random() * 0.5 * scale;
-        let vegGeometry;
-        if (Math.random() < 0.5) {
-          vegGeometry = new THREE.ConeGeometry(0.1 * scale, vegHeight, 6);
-        } else {
-          vegGeometry = new THREE.CylinderGeometry(0.08 * scale, 0.15 * scale, vegHeight, 8);
+
+        function updateLives(amount) {
+            lives += amount;
+            document.getElementById('lives').innerText = lives;
+            if (lives <= 0) {
+                console.log("Game Over! Mario ran out of lives.");
+                // Implement game over logic (e.g., reset, show message)
+            }
         }
-        const vegMaterial = new THREE.MeshStandardMaterial({
-          color: new THREE.Color().setHSL(0.25 + Math.random() * 0.15, 0.8, 0.4)
-        });
-        const vegetation = new THREE.Mesh(vegGeometry, vegMaterial);
-        vegetation.position.set(
-          (Math.random() - 0.5) * 1.5 * scale,
-          0.5 * scale + vegHeight / 2,
-          (Math.random() - 0.5) * 1.5 * scale
-        );
-        islandGroup.add(vegetation);
-      }
-      
-      islandGroup.position.set(x, y, z); // Set group position
-      scene.add(islandGroup);
-      window.floatingIslands.push(islandGroup); // Add to global array for animation
-      
-      return islandGroup;
-    }
-    
-    // Create multiple smaller floating islands
-    createFloatingIsland(-15, 5, -8, 1.2);
-    createFloatingIsland(12, -3, -5, 0.9);
-    createFloatingIsland(-7, -8, 10, 0.7);
-    createFloatingIsland(18, 2, 7, 1.1);
-    createFloatingIsland(0, 15, -12, 1.0);
 
-    // Enhanced dramatic rings with particle effects (similar to halo around main island)
-    const ringGroup = new THREE.Group();
-    
-    function createEnhancedRing(innerRadius, outerRadius, color, opacity, segments = 128) {
-      const ringGeometry = new THREE.RingGeometry(innerRadius, outerRadius, segments);
-      const ringMaterial = new THREE.MeshBasicMaterial({
-        color: color,
-        transparent: true,
-        opacity: opacity,
-        side: THREE.DoubleSide, // Render both sides of the ring
-        blending: THREE.AdditiveBlending // Additive blending for glow effect
-      });
-      
-      // Add particle effects to rings
-      const particleGeometry = new THREE.BufferGeometry();
-      const particleCount = 400; // More particles for denser rings
-      const particlePositions = [];
-      
-      for (let i = 0; i < particleCount; i++) {
-        const angle = (i / particleCount) * Math.PI * 2;
-        const radius = innerRadius + Math.random() * (outerRadius - innerRadius); // Random radius within ring
-        particlePositions.push(
-          Math.cos(angle) * radius,
-          (Math.random() - 0.5) * 1.0, // Larger y-spread for particles
-          Math.sin(angle) * radius
-        );
-      }
-      
-      particleGeometry.setAttribute('position', new THREE.Float32BufferAttribute(particlePositions, 3));
-      const particleMaterial = new THREE.PointsMaterial({
-        color: color,
-        size: 0.3, // Larger particles
-        transparent: true,
-        opacity: opacity * 0.9,
-        blending: THREE.AdditiveBlending
-      });
-      
-      const ring = new THREE.Mesh(ringGeometry, ringMaterial);
-      const particles = new THREE.Points(particleGeometry, particleMaterial);
-      
-      const ringWithParticles = new THREE.Group();
-      ringWithParticles.add(ring);
-      ringWithParticles.add(particles); // Add particles to the ring group
-      
-      return ringWithParticles;
-    }
-    
-    // Create multiple rings around the main island, mimicking the image
-    const mainRing1 = createEnhancedRing(14, 15, 0x9900ff, 0.6); // Purple
-    mainRing1.rotation.x = Math.PI / 2; // Flat
-    mainRing1.position.y = 2; // Position around the island
-    ringGroup.add(mainRing1);
-
-    const mainRing2 = createEnhancedRing(13.5, 14.5, 0x00aaff, 0.4); // Blue
-    mainRing2.rotation.x = Math.PI / 2;
-    mainRing2.rotation.y = Math.PI / 8; // Slight tilt
-    mainRing2.position.y = 2;
-    ringGroup.add(mainRing2);
-
-    const mainRing3 = createEnhancedRing(15, 16, 0xff3388, 0.3); // Pink
-    mainRing3.rotation.x = Math.PI / 2;
-    mainRing3.rotation.y = -Math.PI / 16; // Slight tilt
-    mainRing3.position.y = 2;
-    ringGroup.add(mainRing3);
-    
-    scene.add(ringGroup);
-
-    // Flying vehicles (more organic/fantasy-like)
-    window.flyingVehicles = [];
-
-    function createFlyingVehicle(x, y, z, scale = 1) {
-      const vehicleGroup = new THREE.Group();
-
-      // Main body - more rounded, organic shape
-      const bodyGeometry = new THREE.SphereGeometry(1.2 * scale, 32, 16); // Smoother sphere for body
-      const bodyMaterial = new THREE.MeshStandardMaterial({
-        color: 0x8899aa, // Subtle metallic/stone like
-        metalness: 0.3,
-        roughness: 0.7,
-        emissive: 0x00ffff, // Glowing parts
-        emissiveIntensity: 0.2
-      });
-      const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-      vehicleGroup.add(body);
-
-      // Wings/fins (more stylized)
-      const wingShape = new THREE.Shape();
-      wingShape.moveTo(0, 0);
-      wingShape.lineTo(2 * scale, 0.5 * scale);
-      wingShape.lineTo(0.5 * scale, 0.5 * scale);
-      wingShape.lineTo(0, 0);
-      const extrudeSettings = {
-          steps: 1,
-          depth: 0.1 * scale,
-          bevelEnabled: true,
-          bevelThickness: 0.05 * scale,
-          bevelSize: 0.05 * scale,
-          bevelSegments: 2
-      };
-      const wingGeometry = new THREE.ExtrudeGeometry(wingShape, extrudeSettings);
-      const wingMaterial = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.7, roughness: 0.4 });
-      
-      const wing1 = new THREE.Mesh(wingGeometry, wingMaterial);
-      wing1.rotation.y = Math.PI / 2;
-      wing1.position.set(0.5 * scale, 0.5 * scale, 0);
-      vehicleGroup.add(wing1);
-
-      const wing2 = new THREE.Mesh(wingGeometry, wingMaterial);
-      wing2.rotation.y = -Math.PI / 2;
-      wing2.position.set(0.5 * scale, -0.5 * scale, 0);
-      vehicleGroup.add(wing2);
-
-      // Propulsion glow at the back (multiple points)
-      for (let i = 0; i < 3; i++) {
-        const engineGlow = new THREE.PointLight(0xff6600, 0.8, 6); // Orange-red glow
-        engineGlow.position.set(-1.5 * scale, (i - 1) * 0.5 * scale, 0); // Spread out
-        vehicleGroup.add(engineGlow);
-      }
-
-      vehicleGroup.position.set(x, y, z);
-      scene.add(vehicleGroup);
-      window.flyingVehicles.push(vehicleGroup);
-      return vehicleGroup;
-    }
-
-    // Create several flying vehicles
-    createFlyingVehicle(20, 8, 0, 1.5);
-    createFlyingVehicle(-18, 0, 10, 1.0);
-    createFlyingVehicle(0, -10, -15, 0.8);
-    createFlyingVehicle(25, -5, -20, 1.3);
-
-
-    // Mouse controls for camera with smoother movement
-    let mouseX = 0, mouseY = 0;
-    const windowHalfX = window.innerWidth / 2;
-    const windowHalfY = window.innerHeight / 2;
-
-    document.addEventListener('mousemove', (event) => {
-      // Calculate mouse position relative to center of window
-      mouseX = (event.clientX - windowHalfX) / 80;
-      mouseY = (event.clientY - windowHalfY) / 80;
-      
-      createCursorParticle(event.clientX, event.clientY); // Create particles at cursor position
-    });
-
-    // Enhanced cursor particle system
-    function createCursorParticle(x, y) {
-      const particle = document.createElement('div');
-      particle.className = 'particle';
-      particle.style.left = x + 'px';
-      particle.style.top = y + 'px';
-      
-      // Add random colors to particles from a predefined list
-      const colors = ['rgba(0,255,255,0.8)', 'rgba(255,102,0,0.8)', 'rgba(255,51,136,0.8)', 'rgba(255,221,0,0.8)'];
-      const randomColor = colors[Math.floor(Math.random() * colors.length)];
-      particle.style.background = `radial-gradient(circle, ${randomColor} 0%, transparent 70%)`;
-      
-      document.getElementById('cursor-particles').appendChild(particle);
-      
-      // Remove particle after animation duration
-      setTimeout(() => {
-        if (particle.parentNode) {
-          particle.remove();
+        function updateCurrentWorldUI(worldName) {
+            document.getElementById('currentWorld').innerText = worldName;
         }
-      }, 600);
-    }
 
-    // Enhanced animation loop with more dynamic effects
-    function animate() {
-      requestAnimationFrame(animate); // Request next animation frame
-      
-      const time = Date.now() * 0.001; // Current time in seconds for animations
-      
-      // Animate main island (subtle bobbing and rotation)
-      mainIsland.position.y = -2 + Math.sin(time * 0.5) * 0.3;
-      mainIsland.rotation.y += 0.002;
-      
-      // Animate fantasy structures (subtle pulsing glow)
-      fantasyStructures.forEach((structure, index) => {
-        structure.material.emissiveIntensity = 0.3 + Math.sin(time * 3 + index) * 0.2;
-        structure.rotation.y += 0.005 * (index % 2 === 0 ? 1 : -1); // Subtle rotation
-      });
+        // New function to populate the world list overlay
+        function populateWorldListOverlay() {
+            const worldNamesContainer = document.getElementById('worldNames');
+            worldNamesContainer.innerHTML = ''; // Clear existing content
 
-      // Animate smaller floating islands with more complex movement (rotation, bobbing, subtle side movement)
-      window.floatingIslands.forEach((island, index) => {
-        island.rotation.y += 0.008 + index * 0.002; // Rotate islands at different speeds
-        island.position.y += Math.sin(time * 1.5 + index * 2) * 0.003; // Bobbing motion
-        island.position.x += Math.cos(time * 0.8 + index) * 0.001; // Subtle horizontal drift
-      });
-      
-      // Enhanced ring animations with different speeds and particle animation
-      ringGroup.children.forEach((ring, index) => {
-        const speed = 0.005 + index * 0.002; // Different speeds for each ring
-        ring.rotation.z += speed;
-        ring.rotation.y += speed * 0.7;
-        
-        // Animate ring particles if they exist
-        if (ring.children[1]) {
-          ring.children[1].rotation.y += speed * 2;
+            Object.keys(worlds).forEach(worldKey => {
+                const worldData = worlds[worldKey];
+                const span = document.createElement('span');
+                // Display the primary name of the world (e.g., "Web", "Animation")
+                span.innerText = worldData.title.split(' ')[0]; 
+                worldNamesContainer.appendChild(span);
+            });
         }
-      });
 
-      // Animate flying vehicles
-      window.flyingVehicles.forEach((vehicle, index) => {
-        const orbitRadius = 30 + index * 5;
-        const orbitSpeed = 0.005 + index * 0.001;
-        vehicle.position.x = Math.cos(time * orbitSpeed + index) * orbitRadius;
-        vehicle.position.z = Math.sin(time * orbitSpeed + index) * orbitRadius;
-        vehicle.position.y = 5 + Math.sin(time * 0.7 + index * 0.5) * 5; // Bobbing up and down
-        
-        // Make vehicles look at the center or follow a path
-        vehicle.lookAt(0, vehicle.position.y, 0); // Look towards the center horizontally
-      });
-      
-      // Animate star layers at different speeds for parallax effect
-      stars1.rotation.y += 0.0003;
-      stars1.rotation.x += 0.0001;
-      stars2.rotation.y += 0.0005;
-      stars2.rotation.z += 0.0002;
-      stars3.rotation.y += 0.0008;
-      
-      // Enhanced light animations (intensity and position variations)
-      mainLight.intensity = 1.8 + Math.sin(time * 2.5) * 0.4;
-      mainLight.position.x = 15 + Math.sin(time * 1.2) * 2;
-      
-      blueAccentLight.intensity = 1.2 + Math.cos(time * 1.8) * 0.3;
-      blueAccentLight.position.z = 10 + Math.cos(time * 0.9) * 2;
-      
-      pinkAccentLight.intensity = 1.0 + Math.sin(time * 3.2) * 0.3;
-      pinkAccentLight.position.y = 8 + Math.sin(time * 1.1) * 3;
-      
-      greenGlowLight.intensity = 0.6 + Math.cos(time * 2.8) * 0.2;
-      
-      // Smooth camera movement based on mouse input using linear interpolation
-      camera.position.x += (mouseX - camera.position.x) * 0.03;
-      camera.position.y += (-mouseY - camera.position.y + 10) * 0.03; // Adjusted for new island height
-      
-      // Add subtle camera rotation
-      camera.rotation.z = Math.sin(time * 0.5) * 0.02;
-      
-      camera.lookAt(scene.position); // Always look at the center of the scene
-      
-      renderer.render(scene, camera); // Render the scene
-    }
+        // --- Lighting Setup ---
+        function setupLighting() {
+            // Ambient light for general scene illumination
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+            scene.add(ambientLight);
 
-    // Handle window resize to maintain responsiveness
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight; // Update aspect ratio
-      camera.updateProjectionMatrix(); // Update camera projection
-      renderer.setSize(window.innerWidth, window.innerHeight); // Resize renderer
-    });
+            // Hemisphere light for more natural outdoor lighting (sky color, ground color)
+            const hemiLight = new THREE.HemisphereLight(0xadd8e6, 0x7cfc00, 0.6); // Sky blue to grass green
+            scene.add(hemiLight);
 
-    // Start animation loop
-    animate();
-  </script>
+            // Directional light to simulate the sun (for shadows)
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(50, 50, 50); // Position of the sun
+            directionalLight.castShadow = true; // Enable shadow casting
+            // Configure shadow map resolution and camera
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            directionalLight.shadow.camera.near = 0.5;
+            directionalLight.shadow.camera.far = 500;
+            directionalLight.shadow.camera.left = -50;
+            directionalLight.shadow.camera.right = 50;
+            directionalLight.shadow.camera.top = 50;
+            directionalLight.shadow.camera.bottom = -50;
+            scene.add(directionalLight);
 
-  <!-- Cursor particles will be appended here dynamically -->
-  <div id="cursor-particles"></div>
-  
-  <!-- Category buttons arranged in a circular fashion -->
-  <div id="category-buttons">
-    <a href="#" onclick="alert('Magic Spells & Algorithms - Coming Soon!')" style="top: 0%; left: 50%;">קסמים ואלגוריתמים</a>
-    <a href="#" onclick="alert('Ancient Lore & UI/UX - Coming Soon!')" style="top: 20%; left: 90%;">ידע עתיק וממשקים</a>
-    <a href="#" onclick="alert('Mythical Creature Gallery - Coming Soon!')" style="top: 80%; left: 90%;">גלריית יצורים</a>
-    <a href="#" onclick="alert('Epic Journeys & VFX - Coming Soon!')" style="top: 100%; left: 50%;">מסעות אפים ו-VFX</a>
-    <a href="#" onclick="alert('Dimensional Portals & AI - Coming Soon!')" style="top: 80%; left: 10%;">פורטלים ובינה מלאכותית</a>
-    <a href="#" onclick="alert('Interactive Quests - Coming Soon!')" style="top: 20%; left: 10%;">משימות אינטראקטיביות</a>
-  </div>
+            // Additional point lights for visual flair
+            const pointLight1 = new THREE.PointLight(0xffd700, 1, 30); // Gold light
+            pointLight1.position.set(-20, 10, -20);
+            scene.add(pointLight1);
 
-  <!-- Main UI elements: Title and Subtitle -->
-  <div id="ui">
-    <h1 class="title">SHIRLY HERSCOVICI</h1>
-    <p class="subtitle">Creative Designer & Developer</p>
-  </div>
-  
-  <!-- Floating information box -->
-  <div class="floating-info">
-    <h3>Portfolio Features</h3>
-    <p>• 3D Interactive World<br>
-       • Floating Island Cities<br>
-       • Dynamic Lighting & Glow<br>
-       • Flying Vehicles<br>
-       • Particle Systems</p>
-  </div>
-  
-  <!-- Contact form section -->
-  <div class="contact-section">
-    <h2>Contact Me</h2>
-    <form onsubmit="event.preventDefault(); alert('Message sent successfully! Thank you for reaching out.'); this.reset();">
-      <input type="text" placeholder="Your Name" required />
-      <input type="email" placeholder="Your Email" required />
-      <textarea rows="4" placeholder="Tell me about your project..." required></textarea>
-      <button type="submit">Send Message</button>
-    </form>
-  </div>
+            const pointLight2 = new THREE.PointLight(0xff6b6b, 1, 30); // Red light
+            pointLight2.position.set(20, 10, 20);
+            scene.add(pointLight2);
+        }
+
+        // --- World Creation ---
+        function createWorld() {
+            // Ground Plane
+            const groundGeometry = new THREE.PlaneGeometry(100, 100); // Large flat plane
+            const groundMaterial = new THREE.MeshLambertMaterial({ 
+                color: 0x90ee90, // Light green
+                map: createGrassTexture() // Custom grass texture
+            });
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2; // Rotate to be horizontal
+            ground.receiveShadow = true; // Ground receives shadows
+            scene.add(ground);
+
+            // Sky Dome
+            const skyGeometry = new THREE.SphereGeometry(200, 32, 16); // Large sphere
+            const skyMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0x87ceeb, // Sky blue
+                side: THREE.BackSide // Render inside the sphere
+            });
+            const sky = new THREE.Mesh(skyGeometry, skyMaterial);
+            scene.add(sky);
+
+            // Add decorative Mario-style elements
+            createPipes();
+            createClouds(); // Now creates animated clouds
+        }
+
+        // Function to create a simple procedural grass texture
+        function createGrassTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 128; // Increased resolution
+            canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+            
+            // Base grass color
+            ctx.fillStyle = '#7CFC00'; // Brighter green
+            ctx.fillRect(0, 0, 128, 128);
+            
+            // Add some darker green specks for texture
+            for (let i = 0; i < 300; i++) { // More specks
+                ctx.fillStyle = `hsl(${100 + Math.random() * 30}, 60%, ${30 + Math.random() * 15}%)`;
+                ctx.fillRect(Math.random() * 128, Math.random() * 128, 2, 2);
+            }
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.wrapS = texture.wrapT = THREE.RepeatWrapping; // Repeat texture
+            texture.repeat.set(10, 10); // How many times to repeat over the ground
+            texture.magFilter = THREE.NearestFilter; // Pixelated look
+            return texture;
+        }
+
+        // Create multiple pipes at various positions
+        function createPipes() {
+            const pipePositions = [
+                { x: -30, z: -30 },
+                { x: 30, z: -30 },
+                { x: -30, z: 30 },
+                { x: 30, z: 30 },
+                { x: 0, z: -35 },
+                { x: -35, z: 0 },
+                { x: 35, z: 0 },
+                { x: 0, z: 35 }
+            ];
+
+            pipePositions.forEach(pos => {
+                const pipe = createPipe();
+                pipe.position.set(pos.x, 0, pos.z); // Pipes start at y=0
+                scene.add(pipe);
+            });
+        }
+
+        // Function to create a single Mario-style pipe
+        function createPipe() {
+            const pipeGroup = new THREE.Group();
+            
+            // Main pipe body (cylinder)
+            const bodyGeometry = new THREE.CylinderGeometry(1.5, 1.5, 6, 32); // Radius, height, segments
+            const bodyMaterial = new THREE.MeshLambertMaterial({ color: 0x228b22 }); // Dark green
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.position.y = 3; // Half its height to sit on the ground
+            body.castShadow = true;
+            pipeGroup.add(body);
+            
+            // Pipe top (wider cylinder)
+            const topGeometry = new THREE.CylinderGeometry(2, 2, 1, 32);
+            const topMaterial = new THREE.MeshLambertMaterial({ color: 0x32cd32 }); // Lighter green
+            const top = new THREE.Mesh(topGeometry, topMaterial);
+            top.position.y = 6.5; // Sits on top of the body
+            top.castShadow = true;
+            pipeGroup.add(top);
+            
+            return pipeGroup;
+        }
+
+        // Function to create a simple procedural cloud texture
+        function createCloudTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64;
+            canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.fillRect(0, 0, 64, 64);
+            ctx.filter = 'blur(4px)'; // Apply blur for softness
+
+            ctx.beginPath();
+            ctx.arc(20, 20, 15, 0, Math.PI * 2);
+            ctx.arc(40, 25, 18, 0, Math.PI * 2);
+            ctx.arc(30, 40, 16, 0, Math.PI * 2);
+            ctx.arc(50, 35, 14, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'; // Slightly darker inside
+            ctx.fill();
+
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        // Create multiple clouds scattered around the sky
+        function createClouds() {
+            const cloudMaterial = new THREE.MeshLambertMaterial({ 
+                color: 0xffffff, 
+                transparent: true, 
+                opacity: 0.8,
+                map: createCloudTexture() // Apply new cloud texture
+            });
+
+            for (let i = 0; i < 20; i++) { // More clouds for better movement effect
+                const cloudGroup = new THREE.Group();
+                
+                // Create multiple spheres to form a fluffy cloud shape
+                for (let j = 0; j < 6; j++) {
+                    const sphereGeometry = new THREE.SphereGeometry(1 + Math.random() * 2.5, 16, 16);
+                    const sphere = new THREE.Mesh(sphereGeometry, cloudMaterial);
+                    sphere.position.set(
+                        (Math.random() - 0.5) * 8,
+                        (Math.random() - 0.5) * 3,
+                        (Math.random() - 0.5) * 8
+                    );
+                    sphere.castShadow = true;
+                    cloudGroup.add(sphere);
+                }
+                
+                cloudGroup.position.set(
+                    (Math.random() - 0.5) * 200, // Wider spawn range
+                    20 + Math.random() * 15,     // Random Y (height)
+                    (Math.random() - 0.5) * 200  // Random Z within a larger range
+                );
+                cloudGroup.userData.speed = (Math.random() * 0.5 + 0.1) * (Math.random() > 0.5 ? 1 : -1); // Random speed and direction
+                scene.add(cloudGroup);
+                animatedClouds.push(cloudGroup); // Add to animatedClouds array
+            }
+        }
+
+        // --- Mario Character Creation ---
+        function createMario() {
+            const marioGroup = new THREE.Group(); // Group all Mario parts together
+            
+            // Body (red cube)
+            const bodyGeometry = new THREE.BoxGeometry(1, 1.5, 0.8);
+            const bodyMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000 }); // Red
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.position.y = 0.75; // Position above the feet
+            body.castShadow = true;
+            marioGroup.add(body);
+            
+            // Head (peach sphere) - Increased segments for smoother look
+            const headGeometry = new THREE.SphereGeometry(0.6, 64, 32); // Increased segments
+            const headMaterial = new THREE.MeshLambertMaterial({ color: 0xffdbac }); // Peach skin tone
+            const head = new THREE.Mesh(headGeometry, headMaterial);
+            head.position.y = 2; // Position above the body
+            head.castShadow = true;
+            marioGroup.add(head);
+            
+            // Hat (red cylinder) - Increased segments for smoother look
+            const hatGeometry = new THREE.CylinderGeometry(0.7, 0.7, 0.3, 64); // Increased segments
+            const hatMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000 });
+            const hat = new THREE.Mesh(hatGeometry, hatMaterial);
+            hat.position.y = 2.4; // Sits on top of the head
+            hat.castShadow = true;
+            marioGroup.add(hat);
+            
+            // Legs (blue cubes)
+            const legGeometry = new THREE.BoxGeometry(0.3, 0.8, 0.3);
+            const legMaterial = new THREE.MeshLambertMaterial({ color: 0x0000ff }); // Blue
+            
+            const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
+            leftLeg.position.set(-0.25, -0.4, 0); // Offset to the left
+            leftLeg.castShadow = true;
+            marioGroup.add(leftLeg);
+            
+            const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
+            rightLeg.position.set(0.25, -0.4, 0); // Offset to the right
+            rightLeg.castShadow = true;
+            marioGroup.add(rightLeg);
+            
+            marioGroup.position.set(0, 2, 0); // Initial Mario position
+            mario = marioGroup; // Assign the created group to the global mario variable
+            scene.add(mario); // Add Mario to the scene
+        }
+
+        // --- World Platform Creation ---
+        function createWorldPlatforms() {
+            Object.keys(worlds).forEach(worldKey => {
+                const worldData = worlds[worldKey];
+                const platform = createPlatform(worldData.color, worldKey);
+                platform.position.set(worldData.position.x, 2, worldData.position.z); // Position platforms slightly above ground
+                scene.add(platform);
+                interactiveZones.push({ // Add to interactiveZones
+                    mesh: platform,
+                    worldKey: worldKey,
+                    position: platform.position // Use platform's actual position
+                });
+            });
+        }
+
+        // Function to create a single world platform with a question block
+        function createPlatform(color, worldKey) {
+            const platformGroup = new THREE.Group();
+            
+            // Main platform (cylinder)
+            const platformGeometry = new THREE.CylinderGeometry(4, 4, 1, 32);
+            const platformMaterial = new THREE.MeshLambertMaterial({ color: color });
+            const platform = new THREE.Mesh(platformGeometry, platformMaterial);
+            platform.castShadow = true;
+            platform.receiveShadow = true;
+            platformGroup.add(platform);
+            
+            // Question block on top
+            const blockGeometry = new THREE.BoxGeometry(1, 1, 1);
+            const blockMaterial = new THREE.MeshLambertMaterial({ color: 0xffd700 }); // Gold
+            const block = new THREE.Mesh(blockGeometry, blockMaterial);
+            block.position.y = 1; // Position above the platform
+            block.castShadow = true;
+            
+            // Store data for animation and interaction
+            block.userData = { 
+                originalY: block.position.y, 
+                worldKey: worldKey,
+                isQuestionBlock: true,
+                animationOffset: 0 // For bobbing animation
+            };
+            
+            platformGroup.add(block);
+            platformGroup.userData = { worldKey: worldKey, type: 'platform' }; // Store world key and type on the group for easy access
+            
+            return platformGroup;
+        }
+
+        // --- Collectibles Creation ---
+        function createCollectibles() {
+            // Create coins around the world
+            for (let i = 0; i < 20; i++) {
+                const coin = createCoin();
+                coin.position.set(
+                    (Math.random() - 0.5) * 60, // Random X
+                    1 + Math.random() * 3,      // Random Y (slightly floating)
+                    (Math.random() - 0.5) * 60  // Random Z
+                );
+                scene.add(coin);
+                collectibles.push(coin);
+            }
+            
+            // Create power-ups
+            for (let i = 0; i < 5; i++) {
+                const powerUp = createPowerUp();
+                powerUp.position.set(
+                    (Math.random() - 0.5) * 40,
+                    1,
+                    (Math.random() - 0.5) * 40
+                );
+                scene.add(powerUp);
+                collectibles.push(powerUp);
+            }
+        }
+
+        // Function to create a single coin
+        function createCoin() {
+            const coinGeometry = new THREE.CylinderGeometry(0.5, 0.5, 0.1, 32); // Flat cylinder
+            const coinMaterial = new THREE.MeshPhongMaterial({ color: 0xffd700, specular: 0xffff00, shininess: 100 }); // Gold with shine
+            const coin = new THREE.Mesh(coinGeometry, coinMaterial);
+            coin.userData = { 
+                type: 'coin', 
+                value: 1, // Value for coin count
+                originalY: coin.position.y,
+                rotationSpeed: 0.05 // For spinning animation
+            };
+            coin.castShadow = true;
+            return coin;
+        }
+
+        // Function to create a single power-up (e.g., mushroom)
+        function createPowerUp() {
+            const powerUpGeometry = new THREE.BoxGeometry(1, 1, 1);
+            const powerUpMaterial = new THREE.MeshLambertMaterial({ color: 0xff6b6b }); // Red
+            const powerUp = new THREE.Mesh(powerUpGeometry, powerUpMaterial);
+            powerUp.userData = { 
+                type: 'powerup', 
+                value: 1, // Value for lives count
+                originalY: powerUp.position.y,
+                rotationSpeed: 0.02
+            };
+            powerUp.castShadow = true;
+            return powerUp;
+        }
+
+        // --- New: Mushroom Buildings ---
+        // Function to create a large mushroom building with a door
+        function createMushroomBuilding(color, worldKey) {
+            const mushroomHouseGroup = new THREE.Group();
+
+            // Stem - large cylinder
+            const stemGeometry = new THREE.CylinderGeometry(3, 3.5, 8, 32);
+            const stemMaterial = new THREE.MeshLambertMaterial({ color: 0xfff0c6 }); // Creamy white/light beige
+            const stem = new THREE.Mesh(stemGeometry, stemMaterial);
+            stem.position.y = 4; // Half its height
+            stem.castShadow = true;
+            stem.receiveShadow = true;
+            mushroomHouseGroup.add(stem);
+
+            // Cap - large half-sphere for the roof
+            const capGeometry = new THREE.SphereGeometry(5, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2); // Half sphere
+            const capMaterial = new THREE.MeshLambertMaterial({ color: color }); // World-specific color
+            const cap = new THREE.Mesh(capGeometry, capMaterial);
+            cap.position.y = 8; // On top of the stem
+            cap.rotation.x = Math.PI; // Flip to be convex upwards
+            cap.castShadow = true;
+            mushroomHouseGroup.add(cap);
+
+            // Door - simple box geometry
+            const doorGeometry = new THREE.BoxGeometry(2, 4, 0.2);
+            const doorMaterial = new THREE.MeshLambertMaterial({ color: 0x8b4513 }); // Brown door
+            const door = new THREE.Mesh(doorGeometry, doorMaterial);
+            door.position.set(0, 2.5, 3.5); // Position on the stem, slightly out
+            door.castShadow = true;
+            mushroomHouseGroup.add(door);
+
+            // Add some simple windows
+            const windowMaterial = new THREE.MeshLambertMaterial({ color: 0xadd8e6 }); // Light blue for glass
+            const windowGeometry = new THREE.BoxGeometry(0.8, 1.5, 0.1);
+
+            const window1 = new THREE.Mesh(windowGeometry, windowMaterial);
+            window1.position.set(2.5, 5, 2.5);
+            window1.rotation.y = Math.PI / 4;
+            window1.castShadow = true;
+            mushroomHouseGroup.add(window1);
+
+            const window2 = new THREE.Mesh(windowGeometry, windowMaterial);
+            window2.position.set(-2.5, 5, 2.5);
+            window2.rotation.y = -Math.PI / 4;
+            window2.castShadow = true;
+            mushroomHouseGroup.add(window2);
+
+            mushroomHouseGroup.userData = { worldKey: worldKey, type: 'mushroomBuilding' };
+            return mushroomHouseGroup;
+        }
+
+        // Function to create all mushroom buildings and add them to interactive zones
+        function createMushroomBuildings() {
+            Object.keys(worlds).forEach(worldKey => {
+                const worldData = worlds[worldKey];
+                const mushroomBuilding = createMushroomBuilding(worldData.color, worldKey);
+                // Adjusted y position to ensure it's not cut off by the ground
+                mushroomBuilding.position.set(worldData.mushroomPosition.x, 0.5, worldData.mushroomPosition.z); 
+                scene.add(mushroomBuilding);
+                interactiveZones.push({ // Add to interactiveZones
+                    mesh: mushroomBuilding,
+                    worldKey: worldKey,
+                    position: mushroomBuilding.position // Use mushroom's actual position
+                });
+            });
+        }
+
+
+        // --- Environmental Objects ---
+        function createTrees(count) {
+            for (let i = 0; i < count; i++) {
+                const tree = createTree();
+                tree.position.set(
+                    (Math.random() - 0.5) * 90, // Wider spread
+                    0,
+                    (Math.random() - 0.5) * 90
+                );
+                scene.add(tree);
+                trees.push(tree);
+            }
+        }
+
+        function createTree() {
+            const treeGroup = new THREE.Group();
+
+            // Trunk
+            const trunkGeometry = new THREE.BoxGeometry(1, 5, 1);
+            const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x8b4513 }); // Brown
+            const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+            trunk.position.y = 2.5; // Half its height
+            trunk.castShadow = true;
+            trunk.receiveShadow = true;
+            treeGroup.add(trunk);
+
+            // Leaves (multiple spheres or cubes)
+            const leafMaterial = new THREE.MeshLambertMaterial({ color: 0x228b22 }); // Forest Green
+
+            const sphere1 = new THREE.Mesh(new THREE.SphereGeometry(2, 8, 8), leafMaterial);
+            sphere1.position.set(0, 5, 0);
+            sphere1.castShadow = true;
+            treeGroup.add(sphere1);
+
+            const sphere2 = new THREE.Mesh(new THREE.SphereGeometry(1.5, 8, 8), leafMaterial);
+            sphere2.position.set(-1, 5.5, -0.5);
+            sphere2.castShadow = true;
+            treeGroup.add(sphere2);
+
+            const sphere3 = new THREE.Mesh(new THREE.SphereGeometry(1.8, 8, 8), leafMaterial);
+            sphere3.position.set(1, 5.2, 0.5);
+            sphere3.castShadow = true;
+            treeGroup.add(sphere3);
+            
+            // Randomize size slightly
+            const scale = 0.8 + Math.random() * 0.4;
+            treeGroup.scale.set(scale, scale, scale);
+
+            return treeGroup;
+        }
+
+        // Renamed function for clarity
+        function createSmallMushrooms(count) { 
+            for (let i = 0; i < count; i++) {
+                const mushroom = createSmallMushroom(); // Call the specific small mushroom function
+                mushroom.position.set(
+                    (Math.random() - 0.5) * 70, // Spread
+                    0,
+                    (Math.random() - 0.5) * 70
+                );
+                scene.add(mushroom);
+                smallMushrooms.push(mushroom); // Add to the dedicated array
+            }
+        }
+
+        // Renamed function for clarity
+        function createSmallMushroom() { 
+            const mushroomGroup = new THREE.Group();
+
+            // Stem (white cylinder)
+            const stemGeometry = new THREE.CylinderGeometry(0.5, 0.5, 1.5, 16);
+            const stemMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff }); // White
+            const stem = new THREE.Mesh(stemGeometry, stemMaterial);
+            stem.position.y = 0.75;
+            stem.castShadow = true;
+            mushroomGroup.add(stem);
+
+            // Cap (red sphere half)
+            const capGeometry = new THREE.SphereGeometry(1, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2); // Half sphere
+            const capMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000 }); // Red
+            const cap = new THREE.Mesh(capGeometry, capMaterial);
+            cap.position.y = 1.5;
+            cap.rotation.x = Math.PI; // Flip to be convex upwards
+            cap.castShadow = true;
+            mushroomGroup.add(cap);
+
+            // White dots on cap
+            const dotMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
+            const dotRadius = 0.2;
+            const dotPositions = [
+                { x: 0.5, y: 1.8, z: 0 },
+                { x: -0.5, y: 1.8, z: 0 },
+                { x: 0, y: 1.8, z: 0.5 },
+                { x: 0, y: 1.8, z: -0.5 }
+            ];
+            dotPositions.forEach(pos => {
+                const dot = new THREE.Mesh(new THREE.SphereGeometry(dotRadius, 8, 8), dotMaterial);
+                dot.position.set(pos.x, pos.y, pos.z);
+                dot.castShadow = true;
+                mushroomGroup.add(dot);
+            });
+            
+            // Randomize size slightly
+            const scale = 0.8 + Math.random() * 0.4;
+            mushroomGroup.scale.set(scale, scale, scale);
+
+            return mushroomGroup;
+        }
+
+
+        // --- Event Listeners ---
+        function setupEventListeners() {
+            // Keyboard events for movement and actions
+            document.addEventListener('keydown', (event) => {
+                keys[event.code] = true;
+                if (event.code === 'Space') {
+                    event.preventDefault(); // Prevent page scrolling
+                    jump();
+                }
+                if (event.code === 'Enter' && currentWorldZone) {
+                    enterWorld(currentWorldZone);
+                }
+            });
+
+            document.addEventListener('keyup', (event) => {
+                keys[event.code] = false;
+            });
+
+            // Mouse events for camera rotation (look around)
+            document.addEventListener('mousemove', (event) => {
+                // Normalize mouse coordinates to -1 to +1 range
+                mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+                mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+            });
+
+            // Touch events for mobile controls
+            document.querySelectorAll('.mobile-btn').forEach(btn => {
+                btn.addEventListener('touchstart', (e) => {
+                    e.preventDefault(); // Prevent default touch behavior
+                    const key = btn.dataset.key;
+                    if (key === ' ') {
+                        jump();
+                    } else {
+                        // Map mobile button data-key to keyboard event codes
+                        keys['Key' + key.toUpperCase()] = true;
+                    }
+                });
+
+                btn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    const key = btn.dataset.key;
+                    if (key !== ' ') {
+                        keys['Key' + key.toUpperCase()] = false;
+                    }
+                });
+            });
+
+            // Window resize event to update camera and renderer
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+
+        // --- Player Actions ---
+        function jump() {
+            if (isGrounded) {
+                marioVelocity.y = 12; // Apply upward velocity for jump
+                isGrounded = false;
+                playJumpSound();
+            }
+        }
+
+        // Simple sound effect for jumping using Web Audio API
+        function playJumpSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Set oscillator properties for a jump sound
+                oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+                oscillator.frequency.exponentialRampToValueAtTime(783.99, audioContext.currentTime + 0.1); // G5
+                oscillator.type = 'square'; // Square wave for a classic sound
+                
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2); // Fade out quickly
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.2);
+            } catch (e) {
+                console.warn('AudioContext not supported or error playing sound:', e);
+            }
+        }
+
+        function enterWorld() {
+            if (currentWorldZone) {
+                const worldData = worlds[currentWorldZone];
+                console.log(`Entering ${worldData.title}! Link: ${worldData.link}`);
+                // In a real portfolio, you would redirect, open a modal, or load a new scene here.
+                // Example: window.open(worldData.link, '_blank');
+                // For now, let's just hide the info and log.
+                document.getElementById('worldInfo').classList.remove('active');
+                currentWorldZone = null; // Reset
+                document.getElementById('enterBtn').style.display = 'none'; // Hide button
+                updateCurrentWorldUI('האב'); // Set world back to Hub
+            }
+        }
+
+        function resetCamera() {
+            // Reset mouse influence
+            mouseX = 0;
+            mouseY = 0;
+            // Instantly snap camera back to initial position relative to Mario
+            const initialOffset = new THREE.Vector3(0, 8, 12);
+            const marioWorldPosition = new THREE.Vector3();
+            mario.getWorldPosition(marioWorldPosition);
+            
+            camera.position.copy(marioWorldPosition.add(initialOffset));
+            camera.lookAt(marioWorldPosition.sub(initialOffset)); // Look back at Mario's original spot
+            camera.lookAt(mario.position); // Ensure it looks directly at Mario
+        }
+
+        // --- Game Logic Updates (per frame) ---
+        function updateMario() {
+            const delta = clock.getDelta(); // Time elapsed since last frame for consistent movement
+            const speed = (keys['ShiftLeft'] || keys['ShiftRight']) ? 10 * delta : 5 * delta; // Faster with Shift
+
+            // Apply friction to slow down Mario when no keys are pressed
+            marioVelocity.x *= 0.8;
+            marioVelocity.z *= 0.8;
+
+            // Apply movement based on keys
+            if (keys['KeyW'] || keys['ArrowUp']) {
+                marioVelocity.z -= speed;
+            }
+            if (keys['KeyS'] || keys['ArrowDown']) {
+                marioVelocity.z += speed;
+            }
+            if (keys['KeyA'] || keys['ArrowLeft']) {
+                marioVelocity.x -= speed;
+                mario.rotation.y = Math.PI / 2; // Rotate Mario to face left
+            }
+            if (keys['KeyD'] || keys['ArrowRight']) {
+                marioVelocity.x += speed;
+                mario.rotation.y = -Math.PI / 2; // Rotate Mario to face right
+            }
+
+            // Cap max speed to prevent excessive velocity
+            const maxSpeed = 10 * delta;
+            marioVelocity.x = Math.max(-maxSpeed, Math.min(maxSpeed, marioVelocity.x));
+            marioVelocity.z = Math.max(-maxSpeed, Math.min(maxSpeed, marioVelocity.z));
+
+            // Apply gravity
+            marioVelocity.y -= 25 * delta; // Gravity constant multiplied by delta
+
+            // Update Mario's position
+            mario.position.x += marioVelocity.x;
+            mario.position.y += marioVelocity.y;
+            mario.position.z += marioVelocity.z;
+
+            // Ground collision
+            const groundY = 2; // Y position of the ground plane
+            if (mario.position.y <= groundY) {
+                mario.position.y = groundY;
+                marioVelocity.y = 0;
+                isGrounded = true;
+            }
+
+            // Simple collision for platforms (assuming platforms are the only objects Mario can stand on explicitly)
+            // If mushroom buildings should also be standable, their collision logic needs to be added here.
+            // For now, only the smaller platforms are considered for vertical collision.
+            interactiveZones.forEach(zone => {
+                if (zone.mesh.userData.type === 'platform') { // Only check platforms for vertical landing
+                    const distance = mario.position.distanceTo(zone.mesh.position);
+                    const collisionThreshold = 4; // Mario's radius + platform radius
+                    const platformTopY = zone.mesh.position.y + 0.5; // Top surface of the platform
+
+                    if (distance < collisionThreshold && mario.position.y >= platformTopY - 1 && marioVelocity.y <= 0) {
+                        // If falling onto the platform
+                        mario.position.y = platformTopY;
+                        marioVelocity.y = 0;
+                        isGrounded = true;
+                    }
+                }
+            });
+
+            // World boundaries (keep Mario within the ground plane)
+            const worldBound = 45;
+            mario.position.x = Math.max(-worldBound, Math.min(worldBound, mario.position.x));
+            mario.position.z = Math.max(-worldBound, Math.min(worldBound, mario.position.z));
+        }
+
+        function updateCamera() {
+            // Smoothly follow Mario from a fixed distance and angle
+            const offset = new THREE.Vector3(0, 8, 12); // Camera offset from Mario
+            
+            // Get Mario's current world position
+            const marioWorldPosition = new THREE.Vector3();
+            mario.getWorldPosition(marioWorldPosition);
+            
+            // Adjust camera target position based on mouse input for looking around
+            const targetX = marioWorldPosition.x + mouseX * 5;
+            const targetY = marioWorldPosition.y + 8 + mouseY * 3;
+            const targetZ = marioWorldPosition.z + 12;
+
+            const targetPosition = new THREE.Vector3(targetX, targetY, targetZ);
+
+            camera.position.lerp(targetPosition, 0.05); // Smooth interpolation
+            camera.lookAt(mario.position); // Always look at Mario
+        }
+
+        // --- Interaction Logic ---
+        function checkWorldProximity() {
+            let nearestWorld = null;
+            let minDistance = Infinity;
+            const proximityThreshold = 8; // Distance to trigger world info
+
+            interactiveZones.forEach(zone => { // Iterate over ALL interactive zones (platforms and mushroom buildings)
+                const distance = mario.position.distanceTo(zone.mesh.position);
+                if (distance < proximityThreshold && distance < minDistance) {
+                    minDistance = distance;
+                    nearestWorld = zone.worldKey;
+                }
+            });
+
+            const worldInfoPanel = document.getElementById('worldInfo');
+            const worldTitleElem = document.getElementById('worldTitle');
+            const worldDescriptionElem = document.getElementById('worldDescription');
+            const enterBtn = document.getElementById('enterBtn');
+
+            if (nearestWorld && nearestWorld !== currentWorldZone) {
+                // Mario entered a new world zone
+                currentWorldZone = nearestWorld;
+                const worldData = worlds[currentWorldZone];
+                worldTitleElem.innerText = worldData.title;
+                worldDescriptionElem.innerText = worldData.description;
+                enterBtn.style.display = 'block'; // Show the enter button
+                worldInfoPanel.classList.add('active'); // Show with animation
+                // Update UI location to the world's primary name (e.g., "Web", "Animation")
+                updateCurrentWorldUI(worldData.title.split(' ')[0]); 
+            } else if (!nearestWorld && currentWorldZone) {
+                // Mario left the current world zone
+                currentWorldZone = null;
+                worldInfoPanel.classList.remove('active'); // Hide with animation
+                document.getElementById('enterBtn').style.display = 'none'; // Hide button
+                worldTitleElem.innerText = "ברוך הבא!";
+                worldDescriptionElem.innerText = "התקרב לאחת הפלטפורמות או למבני הפטרייה כדי לראות פרטים ולהיכנס לעולם!";
+                updateCurrentWorldUI('האב'); // Reset world name to Hub
+            }
+        }
+
+        function checkCollectibleCollision() {
+            const marioBoundingBox = new THREE.Box3().setFromObject(mario);
+
+            collectibles.forEach(collectible => {
+                if (collectible.parent === scene) { // Only check if still in scene
+                    const collectibleBoundingBox = new THREE.Box3().setFromObject(collectible);
+                    if (marioBoundingBox.intersectsBox(collectibleBoundingBox)) {
+                        // Collision detected!
+                        if (collectible.userData.type === 'coin') {
+                            updateCoinCount(collectible.userData.value);
+                            console.log('Collected Coin!');
+                        } else if (collectible.userData.type === 'powerup') {
+                            updateLives(collectible.userData.value);
+                            console.log('Collected Power-Up!');
+                        }
+                        scene.remove(collectible); // Remove collectible from scene
+                    }
+                }
+            });
+        }
+
+        // --- Animation Loop ---
+        function animate() {
+            requestAnimationFrame(animate); // Request next frame for continuous animation
+
+            const delta = clock.getDelta(); // Get time elapsed since last frame
+
+            // Update game logic
+            updateMario();
+            updateCamera();
+            checkWorldProximity();
+            checkCollectibleCollision();
+
+            // Animate collectibles (spin and float)
+            collectibles.forEach(collectible => {
+                if (collectible.parent === scene) { // Only animate if still in scene
+                    collectible.rotation.y += collectible.userData.rotationSpeed || 0.05; // Spin
+                    // Simple bobbing motion
+                    collectible.position.y = collectible.userData.originalY + Math.sin(clock.elapsedTime * 3) * 0.5;
+                }
+            });
+
+            // Animate question blocks on platforms (bobbing)
+            interactiveZones.forEach(zone => {
+                // Assuming only platforms have question blocks for now
+                if (zone.mesh.userData.type === 'platform') {
+                    const questionBlock = zone.mesh.children.find(child => child.userData.isQuestionBlock);
+                    if (questionBlock) {
+                        questionBlock.position.y = questionBlock.userData.originalY + Math.sin(clock.elapsedTime * 5) * 0.1;
+                    }
+                }
+            });
+
+            // Animate clouds
+            animatedClouds.forEach(cloud => {
+                cloud.position.x += cloud.userData.speed * delta * 5; // Move horizontally
+                // Reset cloud position if it goes out of bounds to create a continuous loop
+                if (cloud.userData.speed > 0 && cloud.position.x > 120) {
+                    cloud.position.x = -120 - Math.random() * 50; // Reset far left
+                } else if (cloud.userData.speed < 0 && cloud.position.x < -120) {
+                    cloud.position.x = 120 + Math.random() * 50; // Reset far right
+                }
+            });
+
+
+            renderer.render(scene, camera); // Render the scene
+        }
+
+        // --- Entry Point ---
+        window.onload = function () {
+            // Initialize the game when the window loads
+            init();
+        };
+    </script>
 </body>
 </html>
